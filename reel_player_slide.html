@@ -1,0 +1,63 @@
+<title>{{TEAM_NAME}} Reel Slide</title>
+<style>{{FONTS}}</style>
+<style>
+/* Bottom half of the team top-6 reel: 540x480 CSS px rendered at 2x -> 1080x960.
+   One slide per player (or the intro slide, .intro). */
+:root {
+  --team: #0E2240;
+  --accent: #FEC524;
+  --on-accent: #0E2240;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .68);
+  --faint: rgba(255, 255, 255, .15);
+  --strip: rgba(255, 255, 255, .07);
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--team); color: var(--ink); font-family: var(--font); width: 540px; height: 480px; overflow: hidden; font-variant-numeric: tabular-nums; }
+.slide { position: relative; width: 540px; height: 480px; }
+
+.row-top { position: absolute; left: 20px; right: 20px; top: 18px; display: flex; justify-content: space-between; align-items: center; }
+.role { background: var(--accent); color: var(--on-accent); font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; padding: 4px 10px 3px; border-radius: 3px; }
+.count { font-family: var(--display); font-weight: 700; font-size: 20px; color: var(--muted); }
+.count b { color: var(--ink); }
+
+.photo { position: absolute; left: 20px; top: 52px; width: 250px; height: 262px; background: var(--accent); border-radius: 6px; overflow: hidden; }
+.jersey { position: absolute; top: 6px; left: 0; right: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 170px; line-height: 1; color: var(--on-accent); opacity: .15; }
+.photo img { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 200px; }
+
+.who { position: absolute; left: 288px; right: 18px; top: 58px; }
+.first { font-size: 15px; font-weight: 700; color: var(--muted); }
+.last { font-family: var(--display); font-weight: 800; font-size: 44px; line-height: .92; text-transform: uppercase; margin-top: 2px; overflow-wrap: anywhere; }
+.last.long { font-size: 34px; } .last.xlong { font-size: 28px; }
+.meta { font-size: 10.5px; font-weight: 700; color: var(--muted); margin-top: 6px; letter-spacing: .04em; }
+
+.big { position: absolute; left: 288px; right: 18px; top: 208px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.big div { display: grid; border-left: 3px solid var(--accent); padding-left: 9px; }
+.big b { font-family: var(--display); font-weight: 800; font-size: 50px; line-height: .95; }
+.big div.fp b { color: var(--accent-text); }
+.big span { font-size: 8.5px; font-weight: 800; letter-spacing: .1em; color: var(--muted); margin-top: 3px; }
+
+.strip { position: absolute; left: 20px; right: 20px; top: 334px; display: grid; grid-template-columns: repeat(5, 1fr); background: var(--strip); border: 1px solid var(--faint); border-radius: 6px; }
+.strip div { display: grid; justify-items: center; padding: 12px 0 10px; }
+.strip div + div { border-left: 1px solid var(--faint); }
+.strip b { font-family: var(--display); font-size: 34px; font-weight: 700; line-height: 1; }
+.strip span { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--muted); margin-top: 4px; }
+.note { position: absolute; left: 20px; right: 20px; top: 424px; font-size: 9px; font-weight: 600; color: var(--muted); text-align: center; }
+
+/* intro / outro */
+.intro .logo { position: absolute; left: 20px; top: 70px; width: 230px; height: 230px; border-radius: 50%; background: #f4f0e6; border: 5px solid var(--accent); display: grid; place-items: center; }
+.intro .logo img { width: 170px; height: 170px; object-fit: contain; }
+.intro .title { position: absolute; left: 276px; right: 18px; top: 74px; }
+.intro .kicker { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
+.intro h1 { margin: 6px 0 0; font-family: var(--display); font-weight: 800; font-size: 58px; line-height: .9; text-transform: uppercase; }
+.intro .wins { position: absolute; left: 276px; right: 18px; top: 236px; display: grid; border-left: 3px solid var(--accent); padding-left: 10px; }
+.intro .wins b { font-family: var(--display); font-weight: 800; font-size: 54px; line-height: .95; color: var(--accent-text); }
+.intro .wins span { font-size: 9.5px; font-weight: 800; letter-spacing: .1em; color: var(--muted); }
+.intro .cta { position: absolute; left: 20px; right: 20px; top: 352px; text-align: center; font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+</style>
+
+{{BODY}}

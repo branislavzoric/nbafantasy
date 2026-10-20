@@ -1,0 +1,76 @@
+<title>{{TITLE}}</title>
+<style>{{FONTS}}</style>
+<style>
+/* One team's traditional box score table (nba.com layout): 540x675 CSS px rendered
+   at 2x -> 1080x1350. Team colours come in as --team / --accent. */
+:root {
+  --team: #0E2240;
+  --accent: #FEC524;
+  --on-accent: #0E2240;
+  --accent-text: #FEC524;
+  --ink: #15171c;
+  --muted: #6b7079;
+  --rule: #e4e6ea;
+  --zebra: #f5f6f8;
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--team); font-family: var(--font); width: 540px; height: 675px; overflow: hidden; }
+.page { width: 540px; height: 675px; display: flex; flex-direction: column; font-variant-numeric: tabular-nums; }
+
+header { padding: 10px 14px 9px; color: #fff; display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; }
+header img { width: 50px; height: 50px; object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, .4)); }
+.tags { display: flex; gap: 6px; font-size: 8.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.tag-main { background: var(--accent); color: var(--on-accent); padding: 2px 6px; border-radius: 3px; }
+.tag-sub { color: rgba(255, 255, 255, .7); padding: 2px 0; }
+.team { font-family: var(--display); font-weight: 800; font-size: 26px; letter-spacing: .03em; text-transform: uppercase; line-height: 1; margin-top: 4px; }
+.result { text-align: right; font-family: var(--display); font-weight: 800; font-size: 20px; line-height: 1; }
+.result b { color: var(--accent-text); }
+.result small { display: block; font-family: var(--font); font-size: 8.5px; font-weight: 700; color: rgba(255, 255, 255, .7); margin-top: 4px; }
+
+.sheet { flex: 1; background: #fff; margin: 0 8px 8px; border-radius: 6px; padding: 6px 6px 0; display: flex; flex-direction: column; overflow: hidden; }
+table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+tr { height: var(--row-h, 24px); }
+th, td { padding: 0; white-space: nowrap; overflow: hidden; }
+col.c-name { width: 98px; } col.c-fp { width: 26px; }
+th { text-align: left; font-weight: 700; font-size: 9px; color: var(--ink); padding-left: 4px; text-overflow: ellipsis; }
+th i { font-style: normal; font-size: 6.5px; font-weight: 800; color: var(--muted); margin-left: 3px; letter-spacing: .04em; }
+td { text-align: center; font-family: var(--display); font-weight: 600; font-size: 10.5px; color: var(--ink); }
+tr.z { background: var(--zebra); }
+tr { border-bottom: 1px solid var(--rule); }
+tr.head { height: 18px; border-bottom: 1.5px solid var(--ink); }
+tr.head th, tr.head td { font-family: var(--font); font-size: 6px; font-weight: 800; letter-spacing: .03em; color: var(--muted); text-transform: uppercase; }
+tr.head th { font-size: 7.5px; color: var(--ink); letter-spacing: .1em; }
+tr.head.sub { border-top: 10px solid #fff; }
+td.lead { font-weight: 800; }
+td.lead { background: color-mix(in srgb, var(--accent) 30%, transparent); box-shadow: inset 0 -2px 0 var(--accent); }
+td.us { font-weight: 700; border-left: 1px solid var(--rule); }
+td.fp { font-weight: 800; color: var(--team); }
+td.pos { color: #1a7f45; } td.neg { color: #b42318; }
+tr.dnp { height: var(--dnp-h); }
+tr.dnp th { font-size: 8px; color: var(--muted); font-weight: 600; }
+tr.dnp td { text-align: left; font-family: var(--font); font-size: 7.5px; font-weight: 600; color: var(--muted); padding-left: 6px; letter-spacing: .02em; }
+tr.tot { border-top: 1.5px solid var(--ink); border-bottom: 0; background: var(--zebra); }
+tr.tot th { font-weight: 800; text-transform: uppercase; font-size: 8px; letter-spacing: .08em; }
+tr.tot td { font-weight: 800; }
+footer { margin-top: auto; padding: 5px 2px 6px; display: flex; justify-content: space-between; font-size: 7px; font-weight: 600; color: var(--muted); }
+footer i { font-style: normal; display: inline-block; width: 9px; height: 7px; vertical-align: -1px; margin-right: 3px; background: color-mix(in srgb, var(--accent) 30%, transparent); box-shadow: inset 0 -2px 0 var(--accent); }
+</style>
+
+<div class="page">
+  <header>
+    {{LOGO}}
+    <div>
+      <div class="tags"><span class="tag-main">{{KICKER}}</span><span class="tag-sub">Traditional</span></div>
+      <div class="team">{{TEAM_NAME}}</div>
+    </div>
+    <div class="result">{{RESULT}}<small>{{NOTE}}</small></div>
+  </header>
+  <div class="sheet">
+    {{TABLE}}
+    <footer><span><i></i>Team leader · USG% = share of team FGA</span><span>FPTS = Yahoo default points (PTS 1 · REB 1.2 · AST 1.5 · STL 3 · BLK 3 · TO −1)</span></footer>
+  </div>
+</div>

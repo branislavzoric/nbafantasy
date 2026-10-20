@@ -1,0 +1,88 @@
+<title>{{TITLE}}</title>
+<style>{{FONTS}}</style>
+<style>
+/* Game cover for the box-score carousel: 540x675 CSS px rendered at 2x -> 1080x1350.
+   Away team on the left, home team on the right; each side's colours come in as
+   --away / --away-accent and --home / --home-accent. */
+:root {
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .66);
+  --faint: rgba(255, 255, 255, .13);
+  --panel: rgba(10, 12, 16, .62);
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --emoji: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  {{VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #121212; color: var(--ink); font-family: var(--font); width: 540px; height: 675px; overflow: hidden; }
+.page { width: 540px; height: 675px; position: relative; padding: 14px 18px 12px; display: flex; flex-direction: column; gap: 12px; font-variant-numeric: tabular-nums;
+  background: linear-gradient(105deg, var(--away) 0 50%, var(--home) 50% 100%); }
+.page::before { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at 50% 40%, transparent 0 30%, rgba(0, 0, 0, .35) 100%); pointer-events: none; }
+.page > * { position: relative; }
+
+header { display: flex; align-items: center; justify-content: space-between; height: 22px; }
+.tags { display: flex; gap: 6px; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.tag-main { background: #fff; color: #111; padding: 3px 7px; border-radius: 3px; }
+.tag-sub { border: 1px solid var(--muted); padding: 2px 7px; border-radius: 3px; }
+header .note { font-size: 9px; font-weight: 700; color: var(--muted); }
+
+/* ---- scoreboard ---- */
+.board { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0; }
+.side { display: grid; justify-items: center; gap: 2px; text-align: center; }
+.side img { width: 88px; height: 88px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0, 0, 0, .45)); }
+.side .nm { font-family: var(--display); font-weight: 800; font-size: 17px; letter-spacing: .04em; text-transform: uppercase; line-height: 1; }
+.side .rec { font-size: 8.5px; font-weight: 700; color: var(--muted); }
+.side .pts { font-family: var(--display); font-weight: 800; font-size: 60px; line-height: .88; margin-top: 1px; }
+.side.lost .pts { color: rgba(255, 255, 255, .55); }
+.side .res { font-size: 8.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; padding: 2px 8px; border-radius: 999px; background: rgba(0, 0, 0, .35); }
+.side.won .res { background: #fff; color: #111; }
+.mid { display: grid; justify-items: center; gap: 4px; padding: 0 6px; }
+.mid .final { font-family: var(--display); font-weight: 800; font-size: 22px; letter-spacing: .08em; }
+.mid .at { font-size: 9px; font-weight: 800; letter-spacing: .1em; color: var(--muted); }
+
+/* ---- line score ---- */
+.lines { background: var(--panel); border: 1px solid var(--faint); border-radius: 8px; padding: 4px 12px; }
+.lines table { width: 100%; border-collapse: collapse; text-align: center; }
+.lines th { font-size: 7.5px; font-weight: 800; letter-spacing: .1em; color: var(--muted); padding: 1px 0; }
+.lines td { font-family: var(--display); font-weight: 700; font-size: 15px; padding: 0; }
+.lines td:first-child, .lines th:first-child { text-align: left; width: 70px; }
+.lines .t, .lines th:last-child { width: 60px; }
+.lines td:first-child { font-weight: 800; letter-spacing: .04em; }
+.lines td.t { font-weight: 800; }
+.lines tr.won td.t { color: #fff; } .lines tr.lost td { color: rgba(255, 255, 255, .62); }
+.lines td.hi { text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 3px; }
+
+/* ---- team stats: one clean head-to-head list, away | label | home ---- */
+.stats { flex: 1; background: var(--panel); border: 1px solid var(--faint); border-radius: 10px; padding: 4px 10px 6px; display: flex; flex-direction: column; }
+.row { flex: 1; display: grid; grid-template-columns: 1fr 140px 1fr; align-items: center; border-top: 1px solid var(--faint); }
+.row.th { flex: 0 0 34px; border-top: 0; }
+.row.th .v { font-family: var(--display); font-size: 15px; font-weight: 800; letter-spacing: .06em; color: var(--ink); }
+.row.th .v::after { content: ""; display: inline-block; width: 18px; height: 3px; border-radius: 2px; align-self: center; }
+.row.th .v.a::after { background: var(--away-accent); }
+.row.th .v.h::after { background: var(--home-accent); }
+.row.th .lab { color: var(--ink); font-size: 9px; letter-spacing: .2em; }
+.lab { text-align: center; font-size: 8.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.v { font-family: var(--display); font-weight: 700; font-size: 26px; line-height: 1; color: rgba(255, 255, 255, .5); display: flex; align-items: baseline; gap: 7px; }
+.v.h { flex-direction: row-reverse; }
+.v b { font-weight: inherit; }
+.v em { font-style: normal; font-size: 14px; margin-left: 1px; }
+.v small { font-family: var(--font); font-size: 9px; font-weight: 600; color: var(--muted); letter-spacing: .02em; }
+.v.lead { color: #fff; font-weight: 800; }
+.row .v.a { padding-left: 12px; } .row .v.h { padding-right: 12px; }
+.row:not(.th) .v.lead.a { box-shadow: inset 3px 0 0 var(--away-accent); }
+.row:not(.th) .v.lead.h { box-shadow: inset -3px 0 0 var(--home-accent); }
+.swipe { margin-top: auto; text-align: center; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+</style>
+
+<div class="page">
+  <header>
+    <div class="tags"><span class="tag-main">{{KICKER}}</span><span class="tag-sub">Game recap</span></div>
+    <span class="note">{{NOTE}}</span>
+  </header>
+  {{BOARD}}
+  {{LINES}}
+  {{STATS}}
+  <div class="swipe">Swipe for both box scores →</div>
+</div>

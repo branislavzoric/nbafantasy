@@ -1,0 +1,62 @@
+<title>{{TITLE}}</title>
+<style>{{FONTS}}</style>
+<style>
+/* Injury return timetable post: 540x675 CSS px rendered at 2x -> 1080x1350.
+   One row per player: photo, name, injury, then a bar on a shared date axis from
+   the injury to the expected return; a dashed line marks opening night. */
+:root {
+  --bg: #0b0d12;
+  --pop: #eef33a;
+  --hurt: #ff5a4f;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .62);
+  --faint: rgba(255, 255, 255, .12);
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { width: 540px; height: 675px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--font); }
+.post { position: relative; width: 540px; height: 675px; padding: 16px 22px 14px; display: flex; flex-direction: column;
+  background: radial-gradient(ellipse 80% 45% at 50% 0%, rgba(255, 90, 79, .22), transparent 70%), var(--bg); }
+.top { display: flex; justify-content: space-between; align-items: center; }
+.kick { font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; background: var(--pop); color: #111; padding: 4px 8px; border-radius: 3px; }
+.date { font-size: 9.5px; font-weight: 700; color: var(--muted); }
+h1 { margin: 18px 0 2px; font-family: var(--display); font-weight: 800; font-size: 62px; line-height: .9; text-transform: uppercase; color: var(--pop); }
+.sub { font-family: var(--display); font-weight: 600; font-size: 19px; text-transform: uppercase; letter-spacing: .02em; }
+
+.rows { margin-top: 20px; display: grid; gap: 16px; }
+.row { display: grid; grid-template-columns: 92px 1fr; gap: 14px; align-items: center; }
+.ph { width: 92px; height: 92px; border-radius: 50%; overflow: hidden; position: relative; box-shadow: 0 0 0 3px var(--tc), 0 6px 16px rgba(0, 0, 0, .5); background: var(--tc); }
+.ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: var(--fp, 50% 20%); }
+.ph .ini { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 34px; }
+.info { min-width: 0; display: grid; gap: 3px; }
+.nm { display: flex; align-items: baseline; gap: 8px; }
+.nm b { font-family: var(--display); font-weight: 800; font-size: 25px; line-height: 1; text-transform: uppercase; }
+.nm span { font-size: 10px; font-weight: 800; letter-spacing: .08em; color: var(--muted); }
+.inj { font-size: 10.5px; font-weight: 600; color: var(--muted); }
+.track { position: relative; height: 26px; margin-top: 3px; }
+.track .rail { position: absolute; left: 0; right: 0; top: 11px; height: 4px; border-radius: 2px; background: var(--faint); }
+.track .bar { position: absolute; top: 9px; height: 8px; border-radius: 4px; background: linear-gradient(90deg, var(--hurt), color-mix(in srgb, var(--hurt) 55%, var(--pop))); }
+.track .bar.season { background: linear-gradient(90deg, var(--hurt), var(--hurt)); border-radius: 4px 0 0 4px; }
+.track .bar.season::after { content: ""; position: absolute; right: -9px; top: -4px; border: 8px solid transparent; border-left: 10px solid var(--hurt); }
+.track .dot { position: absolute; top: 6px; width: 14px; height: 14px; margin-left: -7px; border-radius: 50%; background: var(--pop); box-shadow: 0 0 0 3px var(--bg); }
+.status { font-family: var(--display); font-weight: 800; font-size: 17px; text-transform: uppercase; color: var(--pop); line-height: 1; }
+.status small { font-family: var(--font); font-size: 10px; font-weight: 700; color: var(--muted); text-transform: none; margin-left: 6px; }
+
+.axis { position: relative; margin: 12px 0 0 106px; height: 34px; border-top: 1px solid var(--faint); }
+.axis span { position: absolute; top: 5px; transform: translateX(-50%); font-size: 9px; font-weight: 700; color: var(--muted); }
+.open-line { position: absolute; width: 0; border-left: 1.5px dashed rgba(255, 255, 255, .55); }
+.open-tag { position: absolute; transform: translateX(-50%); font-size: 8.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; background: #fff; color: #111; padding: 2px 6px; border-radius: 3px; white-space: nowrap; }
+.ctx { margin-top: auto; font-size: 11.5px; font-weight: 600; color: var(--muted); line-height: 1.4; text-align: center; }
+.src { margin-top: 6px; text-align: center; font-size: 7.5px; font-weight: 600; color: rgba(255, 255, 255, .45); }
+</style>
+
+<div class="post">
+  <div class="top"><span class="kick">{{KICKER}}</span><span class="date">{{DATE}}</span></div>
+  <h1>{{LABEL}}</h1>
+  <div class="sub">{{SUB}}</div>
+  {{BODY}}
+  <div class="ctx">{{CONTEXT}}</div>
+  <div class="src">{{SOURCE}}</div>
+</div>

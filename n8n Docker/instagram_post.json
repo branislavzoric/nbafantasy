@@ -1,0 +1,368 @@
+{
+  "updatedAt": "2026-10-03T10:22:04.000Z",
+  "createdAt": "2026-10-02T15:32:17.844Z",
+  "id": "8DEfqsR5VIAwy56c",
+  "name": "NBA Fantasy - Post to Instagram",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "fileSelector": "/files/content/approved/*.json",
+        "options": {}
+      },
+      "id": "0dce3aa6-5d6c-4a3f-81a2-e33336ec96c0",
+      "name": "Read Approved JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Pick the lowest-numbered approved card and build its caption.\nconst all = $input.all();\nif (!all.length) return [];\nconst order = all\n  .map((item, i) => ({ i, name: item.binary.data.fileName }))\n  .sort((a, b) => a.name.localeCompare(b.name));\nconst idx = order[0].i;\nconst card = JSON.parse((await this.helpers.getBinaryDataBuffer(idx, 'data')).toString('utf8'));\n\nconst caption = card.caption || [\n  `🏀 ${card.headline}`,\n  ``,\n  `${card.player} (${card.team}) – 2026-27 projection:`,\n  `${card.pts} PTS · ${card.reb} REB · ${card.ast} AST · ${card.stl} STL · ${card.blk} BLK`,\n  `${card.fppg} fantasy pts/game (#${card.ranks.fppg} overall)`,\n  ``,\n  card.summary,\n  ``,\n  `#NBA #FantasyBasketball #NBAFantasy #${card.team} #FantasyNBA`\n].join('\\n');\n\nreturn [{ json: { ...card, caption: caption.slice(0, 2200) } }];"
+      },
+      "id": "eda2b36d-21ac-4b01-89da-f4d23d205fce",
+      "name": "Build Caption",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/files/content/approved/{{ $json.image }}",
+        "options": {}
+      },
+      "id": "4baf3b3f-aea5-40c5-b2a0-5f5de6276cf4",
+      "name": "Read Card PNG",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/biah2b8d/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "upload_preset",
+              "value": "nbafantasy"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "5a6004c6-b623-42fb-84bd-c2f9dfd654ea",
+      "name": "Upload to Cloudinary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $json.secure_url.replace(/\\.png$/, '.jpg') }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $('Build Caption').first().json.caption }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "51dfe7f6-5697-4657-bd69-ff9a0c95f2fa",
+      "name": "IG Create Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1104,
+        0
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "id": "f9e2513b-93d3-44b9-8183-07bd1ff2f73c",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1328,
+        0
+      ],
+      "webhookId": "a1000000-0000-4000-8000-0000000000aa"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $('IG Create Container').first().json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2563a14-cd5c-4b34-9c5f-2e5ed16fe0f9",
+      "name": "IG Publish",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1552,
+        0
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=mkdir -p /files/content/posted && mv /files/content/approved/{{ $('Build Caption').first().json.slug }}.* /files/content/posted/"
+      },
+      "id": "525b90e3-27cb-4302-afdd-74fb0515f747",
+      "name": "Move to Posted",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "35-55/5 12 3 10 *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "*/5 13 3 10 *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0-30/5 14 3 10 *"
+            }
+          ]
+        }
+      },
+      "id": "b2000000-0000-4000-8000-000000000001",
+      "name": "Schedule Round 1",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        4,
+        0
+      ]
+    },
+    {
+      "id": "a1000000-0000-4000-8000-000000000010",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        480
+      ],
+      "parameters": {}
+    }
+  ],
+  "connections": {
+    "Read Approved JSON": {
+      "main": [
+        [
+          {
+            "node": "Build Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Caption": {
+      "main": [
+        [
+          {
+            "node": "Read Card PNG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Card PNG": {
+      "main": [
+        [
+          {
+            "node": "Upload to Cloudinary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Cloudinary": {
+      "main": [
+        [
+          {
+            "node": "IG Create Container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Create Container": {
+      "main": [
+        [
+          {
+            "node": "Wait 30s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30s": {
+      "main": [
+        [
+          {
+            "node": "IG Publish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Publish": {
+      "main": [
+        [
+          {
+            "node": "Move to Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Round 1": {
+      "main": [
+        [
+          {
+            "node": "Read Approved JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Read Approved JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "staticData": {
+    "node:Schedule Round 1": {
+      "recurrenceRules": [
+        null,
+        null,
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null,
+        null,
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "8f812762-ed0c-47e6-89f2-c0c2182c8d09",
+  "activeVersionId": "8f812762-ed0c-47e6-89f2-c0c2182c8d09",
+  "versionCounter": 9,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-10-02T15:32:17.846Z",
+      "createdAt": "2026-10-02T15:32:17.846Z",
+      "role": "workflow:owner",
+      "workflowId": "8DEfqsR5VIAwy56c",
+      "projectId": "zkqJtf4o6eT9iRhl",
+      "project": {
+        "updatedAt": "2026-10-02T15:08:07.258Z",
+        "createdAt": "2026-10-02T13:57:54.918Z",
+        "id": "zkqJtf4o6eT9iRhl",
+        "name": "Branislav Zoric <branislavzoric87@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "bb05a9da-b2f3-4557-bd3a-3cb8a56982ee"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
+}

@@ -1,0 +1,127 @@
+<title>{{NAME}} Reel Top</title>
+<style>{{FONTS}}</style>
+<style>
+/* Top half of a 1080x1920 reel: 540x480 CSS px rendered at 2x -> 1080x960.
+   Same look as the nightly cards. Animation is driven by render(t) below (not CSS
+   animations) so every video frame is rendered at an exact time: window.FRAME_T (or page.html#t=1.25) */
+:root {
+  --team: #0E2240;
+  --accent: #FEC524;
+  --on-accent: #0E2240;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .66);
+  --faint: rgba(255, 255, 255, .14);
+  --strip: rgba(255, 255, 255, .07);
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--team); color: var(--ink); font-family: var(--font); width: 540px; height: 480px; overflow: hidden; }
+.top { width: 540px; height: 480px; display: flex; flex-direction: column; font-variant-numeric: tabular-nums; position: relative; }
+
+.hero { display: grid; grid-template-columns: 1fr 190px; height: 272px; }
+.left { padding: 18px 14px 12px 20px; display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.tags { display: flex; align-items: center; gap: 10px; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.rank { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; background: var(--accent); color: var(--on-accent); padding: 2px 9px 1px; border-radius: 3px; }
+.rank b { font-family: var(--display); font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: 0; }
+.meta { color: var(--muted); }
+h1 { margin: 0; font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: .95; letter-spacing: .005em; }
+h1 .hl { color: var(--accent-text); }
+h1 .nw { white-space: nowrap; }
+h1.s1 { font-size: 40px; } h1.s2 { font-size: 35px; } h1.s3 { font-size: 30px; }
+.name { font-size: 13px; font-weight: 700; color: var(--muted); }
+.story { margin: auto 0; display: flex; flex-direction: column; gap: 9px; }
+
+.right { background: var(--accent); position: relative; overflow: hidden; }
+.jersey { position: absolute; top: 60px; left: 0; right: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 160px; line-height: 1; color: var(--on-accent); opacity: .14; }
+.fp { position: absolute; top: 14px; left: 12px; background: var(--team); padding: 7px 10px 6px; border-radius: 3px; z-index: 2; }
+.fp b { display: block; font-family: var(--display); font-size: 32px; font-weight: 800; line-height: 1; color: var(--accent-text); }
+.fp span { font-size: 8.5px; font-weight: 800; letter-spacing: .1em; color: var(--muted); }
+.photo { position: absolute; bottom: 0; left: 50%; height: 200px; width: auto; z-index: 1; }
+.rankbig { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 118px; line-height: 1; color: var(--on-accent); z-index: 1; }
+.rankbig small { font-size: 60px; vertical-align: 38px; margin-right: 2px; }
+.nophoto { position: absolute; bottom: 24px; left: 50%; font-family: var(--display); font-weight: 800; font-size: 72px; color: var(--on-accent); opacity: .5; }
+
+.big { display: grid; grid-template-columns: repeat(5, 1fr); border-top: 1px solid var(--faint); height: 88px; align-items: center; padding: 0 8px; }
+.big div { display: grid; justify-items: center; }
+.big b { font-family: var(--display); font-size: 44px; font-weight: 700; line-height: 1; }
+.big span { font-size: 9.5px; font-weight: 800; letter-spacing: .1em; color: var(--muted); margin-top: 3px; }
+.big div.lead b { color: var(--accent-text); }
+.big div { position: relative; }
+.big div.lead::after { content: ""; position: absolute; bottom: -9px; left: 50%; width: 26px; margin-left: -13px; height: 3px; border-radius: 2px; background: var(--accent); }
+
+.strip { display: grid; grid-template-columns: repeat(6, 1fr); background: var(--strip); border-top: 1px solid var(--faint); border-bottom: 1px solid var(--faint); }
+.strip div { display: grid; justify-items: center; padding: 9px 0 7px; }
+.strip div + div { border-left: 1px solid var(--faint); }
+.strip b { font-family: var(--display); font-size: 21px; font-weight: 700; line-height: 1; }
+.strip span { font-size: 8.5px; font-weight: 800; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+
+.foot { flex: 1; display: flex; align-items: center; gap: 6px; padding: 0 20px; }
+.foot span { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--accent-text); color: var(--accent-text); white-space: nowrap; }
+.foot span.win { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.foot .src { margin-left: auto; border: 0; padding: 0; font-size: 8.5px; font-weight: 600; color: var(--muted); }
+
+.divider { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--accent); transform-origin: left; }
+</style>
+
+<div class="top">
+  <div class="hero">
+    <div class="left">
+      <div class="tags a-tag"><span class="rank"><b>#{{RANK}}</b>Last Night</span><span class="meta">{{GAME_LABEL}}</span></div>
+      <div class="tags a-tag"><span class="meta">{{META}}</span></div>
+      <div class="story">
+        <h1 class="{{HEADLINE_SIZE}} a-head">{{HEADLINE}}</h1>
+        <div class="name a-head">{{NAME}}</div>
+      </div>
+    </div>
+    <div class="right a-panel">
+      <div class="jersey">{{JERSEY}}</div>
+      <div class="fp a-fp"><b data-count="{{FPTS}}" data-dec="1">{{FPTS}}</b><span>FANTASY PTS</span></div>
+      {{PHOTO}}
+    </div>
+  </div>
+  <div class="big a-big">{{BIG}}</div>
+  <div class="strip a-strip">{{STRIP}}</div>
+  <div class="foot a-foot">{{BADGES}}<span class="src">{{SOURCE}}</span></div>
+  <div class="divider a-divider"></div>
+</div>
+
+<script>
+const ease = x => 1 - Math.pow(1 - Math.min(Math.max(x, 0), 1), 3);
+const prog = (t, start, dur) => ease((t - start) / dur);
+
+function render(t) {
+  const all = sel => document.querySelectorAll(sel);
+  all(".a-panel").forEach(el => { el.style.transform = `translateX(${(1 - prog(t, 0, .45)) * 100}%)`; });
+  all(".a-tag").forEach((el, i) => {
+    const p = prog(t, .25 + i * .1, .4);
+    el.style.opacity = p; el.style.transform = `translateX(${(1 - p) * -24}px)`;
+  });
+  all(".a-head").forEach((el, i) => {
+    const p = prog(t, .45 + i * .15, .5);
+    el.style.opacity = p; el.style.transform = `translateY(${(1 - p) * 22}px)`;
+  });
+  all(".photo, .nophoto").forEach(el => {
+    const p = prog(t, .35, .6);
+    el.style.transform = `translate(-50%, ${(1 - p) * 60}%)`;
+  });
+  all(".a-fp").forEach(el => { const p = prog(t, .7, .35); el.style.opacity = p; el.style.transform = `scale(${.85 + .15 * p})`; });
+  all(".a-big div").forEach((el, i) => {
+    const p = prog(t, .9 + i * .08, .4);
+    el.style.opacity = p; el.style.transform = `translateY(${(1 - p) * 16}px)`;
+  });
+  all("[data-count]").forEach(el => {
+    const p = prog(t, .9, 1.3), target = parseFloat(el.dataset.count), dec = +(el.dataset.dec || 0);
+    el.textContent = (target * p).toFixed(dec);
+  });
+  all(".a-strip div").forEach((el, i) => { el.style.opacity = prog(t, 1.5 + i * .06, .35); });
+  all(".a-foot > *").forEach((el, i) => { el.style.opacity = prog(t, 1.9 + i * .08, .35); });
+  all(".a-divider").forEach(el => { el.style.transform = `scaleX(${prog(t, .1, .8)})`; });
+}
+
+// The builder sets window.FRAME_T per frame; #t=1.25 works for previewing in a browser.
+const m = location.hash.match(/t=([\d.]+)/);
+render(window.FRAME_T ?? (m ? parseFloat(m[1]) : 99));
+</script>

@@ -1,0 +1,79 @@
+<title>Game Preview Poster</title>
+<style>{{FONTS}}</style>
+<style>
+/* Game-day preview poster: 540x675 CSS px rendered at 2x -> 1080x1350 (Instagram 4:5).
+   Away team left, home team right, split on a diagonal; one player bust per side. */
+:root {
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .72);
+  --gold: #f5c542;
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #07080b; color: var(--ink); font-family: var(--font); width: 540px; height: 675px; overflow: hidden; }
+.page { position: relative; width: 540px; height: 675px; overflow: hidden; background: #07080b; }
+.side { position: absolute; inset: 0; }
+.side.away { background: radial-gradient(ellipse 70% 55% at 22% 62%, color-mix(in srgb, var(--a2) 70%, transparent), transparent 70%),
+  linear-gradient(160deg, #05070c 0%, var(--a1) 55%, #05070c 100%);
+  clip-path: polygon(0 0, 62% 0, 38% 100%, 0 100%); }
+.side.home { background: radial-gradient(ellipse 70% 55% at 78% 62%, color-mix(in srgb, var(--h2) 75%, transparent), transparent 70%),
+  linear-gradient(200deg, #0a0506 0%, color-mix(in srgb, var(--h2) 45%, #120708) 55%, #050304 100%);
+  clip-path: polygon(62% 0, 100% 0, 100% 100%, 38% 100%); }
+.split { position: absolute; inset: 0; background: linear-gradient(to right, transparent calc(50% - 1px), var(--gold) calc(50% - 1px), var(--gold) calc(50% + 1px), transparent calc(50% + 1px));
+  transform: skewX(-19.6deg); opacity: .9; clip-path: inset(175px 0 0 0); }
+.page::before { content: ""; position: absolute; inset: -200px; opacity: .12; z-index: 1;
+  background: repeating-linear-gradient(115deg, transparent 0 46px, rgba(255, 255, 255, .5) 46px 48px, transparent 48px 120px); }
+.page::after { content: ""; position: absolute; inset: 0; opacity: .1; mix-blend-mode: overlay; z-index: 9;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+/* logos as big watermarks */
+.wm { position: absolute; width: 250px; opacity: .13; z-index: 1; top: 250px; }
+.wm.away { left: -50px; } .wm.home { right: -50px; }
+
+/* title */
+.head { position: absolute; top: 26px; left: 0; right: 0; text-align: center; z-index: 6; }
+.kicker { display: inline-block; font-size: 10px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase;
+  color: #111; background: var(--gold); padding: 4px 10px 3px; border-radius: 3px; }
+h1 { margin: 10px 0 0; font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: .82; }
+h1 b { display: block; font-size: 96px; letter-spacing: -.005em; color: var(--ink);
+  text-shadow: 0 5px 0 rgba(0, 0, 0, .4), 0 0 36px rgba(0, 0, 0, .5); }
+h1 b em { font-style: normal; color: var(--gold); text-shadow: 0 5px 0 rgba(0, 0, 0, .4), 0 0 40px rgba(245, 197, 66, .35); }
+.sub { margin-top: 10px; font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: .02em; }
+.sub b { color: var(--ink); }
+
+/* players */
+.fig { position: absolute; bottom: 150px; z-index: 4; }
+.fig img { display: block; width: 100%; filter: drop-shadow(0 12px 26px rgba(0, 0, 0, .6)) contrast(1.04) saturate(1.08); }
+.fig.away { left: -70px; width: 410px; }
+.fig.home { right: -20px; width: 300px; }
+.fade { position: absolute; left: 0; right: 0; bottom: 150px; height: 70px; z-index: 5;
+  background: linear-gradient(to bottom, transparent, rgba(7, 8, 11, .85)); }
+
+.vs { position: absolute; left: 50%; top: 300px; transform: translateX(-50%); z-index: 6;
+  font-family: var(--display); font-weight: 800; font-size: 54px; line-height: 1; color: #111;
+  background: var(--gold); width: 78px; height: 78px; border-radius: 50%; display: grid; place-items: center;
+  box-shadow: 0 0 0 5px rgba(7, 8, 11, .85), 0 10px 30px rgba(0, 0, 0, .6); padding-top: 4px; }
+
+/* bottom band */
+.band { position: absolute; left: 0; right: 0; bottom: 0; height: 150px; z-index: 6; background: rgba(7, 8, 11, .92);
+  border-top: 2px solid var(--gold); display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 18px; }
+.team { display: flex; align-items: center; gap: 10px; }
+.team.home { flex-direction: row-reverse; text-align: right; }
+.team img { width: 44px; height: 44px; object-fit: contain; }
+.team .nm { font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: .9; }
+.team .nm small { display: block; font-size: 11px; letter-spacing: .12em; color: var(--muted); }
+.team .nm b { display: block; font-size: 26px; }
+.team .nm i { display: block; font-style: normal; font-family: var(--font); font-size: 10px; font-weight: 700; color: var(--muted); margin-top: 4px; letter-spacing: .02em; white-space: nowrap; }
+.tip { text-align: center; padding: 0 8px; }
+.tip small { display: block; font-size: 9px; font-weight: 800; letter-spacing: .22em; color: var(--gold); text-transform: uppercase; }
+.tip b { display: block; font-family: var(--display); font-weight: 800; font-size: 30px; white-space: nowrap; line-height: 1; margin-top: 3px; }
+.tip span { display: block; font-size: 10px; font-weight: 700; color: var(--muted); margin-top: 3px; }
+.foot { position: absolute; bottom: 8px; left: 0; right: 0; text-align: center; font-size: 8.5px; font-weight: 700; letter-spacing: .2em;
+  text-transform: uppercase; color: rgba(255, 255, 255, .45); z-index: 7; }
+</style>
+<div class="page" style="{{VARS}}">
+  <div class="side away"></div><div class="side home"></div><div class="split"></div>
+  {{BODY}}
+</div>

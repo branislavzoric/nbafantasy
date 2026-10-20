@@ -1,0 +1,164 @@
+<title>{{TEAM_NAME}} Box Score</title>
+<style>{{FONTS}}</style>
+<style>
+/* One team's box score on a court (depth-chart style): 540x675 CSS px rendered at
+   2x -> 1080x1350. Starters in the top half, the next five off the bench in the
+   bottom half, other bench players and highlights in the right panel.
+   Team colours come in as --team / --accent. */
+:root {
+  --team: #0E2240;
+  --accent: #FEC524;
+  --on-accent: #0E2240;
+  --accent-text: #FEC524;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .66);
+  --faint: rgba(255, 255, 255, .14);
+  --hot: #ff8a3d;
+  --cold: #7cc8ff;
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --emoji: "Segoe UI Emoji", "Apple Color Emoji", "Noto Color Emoji", sans-serif;
+  --line: rgba(25, 20, 15, .82);
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #121212; color: var(--ink); font-family: var(--font); width: 540px; height: 675px; overflow: hidden; }
+.page { width: 540px; height: 675px; position: relative; background: var(--team); font-variant-numeric: tabular-nums; }
+
+header { position: absolute; left: 14px; right: 12px; top: 10px; height: 22px; display: flex; align-items: center; justify-content: space-between; }
+header .note { font-size: 9px; font-weight: 700; color: var(--muted); }
+.tags { display: flex; gap: 6px; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; align-items: center; }
+.tag-main { background: var(--accent); color: var(--on-accent); padding: 3px 7px; border-radius: 3px; }
+.score { border: 1px solid var(--muted); padding: 2px 7px; border-radius: 3px; letter-spacing: .04em; }
+.score .wl { color: var(--accent-text); margin-right: 4px; }
+
+/* ---- court ---- */
+.apron { position: absolute; left: 14px; top: 44px; width: 320px; height: 616px; background: #141414; border-radius: 3px; }
+.baseline-name { position: absolute; left: 0; right: 0; height: 30px; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 21px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-text); line-height: 1; }
+.baseline-name.top { top: 0; }
+.baseline-name.bottom { bottom: 0; transform: rotate(180deg); }
+.court { position: absolute; left: 12px; top: 30px; width: 296px; height: 556px; overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(140, 95, 40, .045) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(90deg, #ead5ab 0 7px, #e3cb9d 7px 14px, #eed9b0 14px 21px, #e0c798 21px 28px); }
+.court svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.court .lines { fill: none; stroke: var(--line); stroke-width: .17; }
+.court .paint { fill: var(--team); }
+.court .paint-line { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: .17; }
+.court .center { fill: #f4f0e6; stroke: var(--accent); stroke-width: .45; }
+.unit-label { position: absolute; left: 6px; font-size: 8px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; background: var(--team); color: var(--accent-text); padding: 2px 6px; border-radius: 2px; }
+
+/* ---- player box (court token and bench row share the inside) ---- */
+.token { position: absolute; width: 142px; height: 66px; padding: 4px 5px 4px 4px; display: grid; gap: 2px; align-content: start;
+  background: color-mix(in srgb, var(--team) 95%, transparent); border-radius: 6px; border: 1.5px solid var(--faint);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .35); }
+.token.starter { border-color: var(--accent); }
+.hot { border-color: var(--hot) !important; box-shadow: 0 0 0 1px var(--hot), 0 3px 10px rgba(255, 120, 40, .45); }
+.cold { border-color: var(--cold) !important; }
+.top { display: flex; align-items: center; gap: 4px; min-width: 0; }
+.face { flex: none; width: 24px; height: 24px; border-radius: 50%; overflow: hidden; background: var(--accent); position: relative; }
+.face img { position: absolute; left: 50%; top: 2px; height: 29px; transform: translateX(-50%); }
+.face .initials { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 11px; color: var(--on-accent); }
+.who { min-width: 0; flex: 1; display: grid; }
+.pos { font-size: 6.5px; font-weight: 800; letter-spacing: .06em; color: var(--accent-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.name { font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 12.5px; }
+.name.long { font-size: 10.5px; } .name.xlong { font-size: 9px; } .name.xxlong { font-size: 8.5px; letter-spacing: -.01em; }
+.fp { flex: none; display: grid; justify-items: end; line-height: 1; }
+.fp b { font-family: var(--display); font-weight: 800; font-size: 16px; color: var(--accent-text); white-space: nowrap; }
+.badge { position: absolute; top: -10px; right: -6px; z-index: 2; font-style: normal; font-family: var(--emoji); font-size: 15px; line-height: 1; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .5)); }
+.fp span { font-size: 5.5px; font-weight: 800; letter-spacing: .08em; color: var(--muted); }
+
+.line { display: grid; grid-template-columns: repeat(var(--n, 5), 1fr); gap: 2px; }
+.line div { display: grid; justify-items: center; line-height: 1.05; background: rgba(255, 255, 255, .07); border-radius: 3px; padding: 1px 0 1.5px; }
+.line b { font-size: 9.5px; font-weight: 800; }
+.line span { font-size: 5px; font-weight: 800; letter-spacing: .06em; color: var(--muted); }
+.line .hi { background: var(--accent); }
+.line .hi b { color: var(--on-accent); font-size: 10.5px; }
+.line .hi span { color: var(--on-accent); opacity: .85; }
+.line .none { font-size: 6.5px; font-weight: 700; color: var(--muted); padding: 3px 0; }
+.shoot { display: flex; justify-content: space-between; gap: 3px; font-size: 5.5px; font-weight: 800; letter-spacing: .03em; color: var(--muted); white-space: nowrap; padding: 0 1px; }
+.shoot b { font-size: 7.5px; color: var(--ink); letter-spacing: 0; margin-left: 1px; }
+.shoot .usg b { color: var(--accent-text); }
+.shoot .min b { color: var(--muted); }
+
+/* ---- right panel ---- */
+.side { position: absolute; left: 344px; top: 44px; width: 184px; height: 616px; display: flex; flex-direction: column; gap: 5px; }
+.panel-title { display: flex; justify-content: space-between; align-items: baseline; border-bottom: 1px solid var(--faint); padding-bottom: 3px; }
+.panel-title b { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-text); }
+.panel-title span { font-size: 8.5px; color: var(--muted); font-weight: 600; }
+.bench-row { position: relative; display: grid; gap: 2px; background: rgba(255, 255, 255, .06); border: 1px solid var(--faint); border-radius: 6px; padding: 3px 5px 3px 4px; }
+.bench-row .face { width: 22px; height: 22px; }
+.bench-row .face img { height: 27px; }
+.bench-row .badge { top: -9px; right: 42px; font-size: 13px; }
+.compact .bench-row { gap: 1px; padding: 2px 5px 2px 4px; }
+.compact .bench-row .line div { padding: 0 0 .5px; }
+.dnp { font-size: 7px; color: var(--muted); font-weight: 600; line-height: 1.35; }
+.dnp b { font-weight: 800; letter-spacing: .08em; color: var(--accent-text); margin-right: 3px; }
+
+.highlights { margin-top: auto; border: 1.5px solid var(--accent); border-radius: 6px; padding: 7px 9px 8px; background: rgba(255, 255, 255, .06); display: grid; gap: 6px; }
+.highlights .label { font-size: 10px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-text); }
+.hl { display: grid; grid-template-columns: 18px 1fr; column-gap: 5px; align-items: start; }
+.hl .em { font-family: var(--emoji); font-size: 13px; line-height: 1.1; }
+.hl .k { font-size: 6.5px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.hl .t { font-family: var(--display); font-weight: 800; font-size: 14px; line-height: 1.02; text-transform: uppercase; }
+.hl .t em { font-style: normal; color: var(--accent-text); }
+.hl .s { font-size: 7.5px; font-weight: 600; color: var(--muted); margin-top: 1px; }
+.ranking { border: 1px solid var(--faint); border-radius: 6px; padding: 6px 9px 7px; background: rgba(255, 255, 255, .04); display: grid; gap: 3px; margin-top: 4px; }
+.ranking .label { font-size: 9px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-text); margin-bottom: 2px; }
+.rk { display: grid; grid-template-columns: 70px 1fr 28px; gap: 6px; align-items: center; }
+.rk .n { font-family: var(--display); font-weight: 800; font-size: 11px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rk .b { height: 6px; border-radius: 3px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.rk .b i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+.rk b { font-family: var(--display); font-size: 12px; text-align: right; }
+.legend { font-size: 6.5px; color: var(--muted); font-weight: 600; display: flex; gap: 8px; }
+.legend i { font-style: normal; font-family: var(--emoji); }
+</style>
+
+<div class="page">
+  <header>
+    <div class="tags"><span class="tag-main">{{KICKER}}</span><span class="score">{{SCORE}}</span></div>
+    <span class="note">{{NOTE}}</span>
+  </header>
+
+  <div class="apron">
+  <div class="baseline-name top">{{TEAM_NAME}}</div>
+  <div class="baseline-name bottom">{{TEAM_NAME}}</div>
+  <div class="court">
+    <svg viewBox="0 0 50 94" preserveAspectRatio="none" aria-hidden="true">
+      <g>
+        <rect class="paint" x="17" y="0" width="16" height="19"/>
+        <path class="paint-line" d="M17 0 V19 H33 V0"/>
+        <path class="lines" d="M19 19 A6 6 0 0 0 31 19"/>
+        <path class="paint-line" d="M19 19 A6 6 0 0 1 31 19" stroke-dasharray=".9 .7"/>
+        <path class="lines" d="M3 0 V14 A23.75 23.75 0 0 0 47 14 V0"/>
+        <line class="paint-line" x1="22" y1="4" x2="28" y2="4"/>
+        <circle class="paint-line" cx="25" cy="5.25" r=".75"/>
+        <path class="paint-line" d="M21 5.25 A4 4 0 0 0 29 5.25"/>
+      </g>
+      <g transform="translate(0 94) scale(1 -1)">
+        <rect class="paint" x="17" y="0" width="16" height="19"/>
+        <path class="paint-line" d="M17 0 V19 H33 V0"/>
+        <path class="lines" d="M19 19 A6 6 0 0 0 31 19"/>
+        <path class="paint-line" d="M19 19 A6 6 0 0 1 31 19" stroke-dasharray=".9 .7"/>
+        <path class="lines" d="M3 0 V14 A23.75 23.75 0 0 0 47 14 V0"/>
+        <line class="paint-line" x1="22" y1="4" x2="28" y2="4"/>
+        <circle class="paint-line" cx="25" cy="5.25" r=".75"/>
+        <path class="paint-line" d="M21 5.25 A4 4 0 0 0 29 5.25"/>
+      </g>
+      <rect class="lines" x=".08" y=".08" width="49.84" height="93.84"/>
+      <line class="lines" x1="0" y1="47" x2="50" y2="47"/>
+      <circle class="center" cx="25" cy="47" r="6"/>
+      {{LOGO}}
+    </svg>
+    {{COURT_TOKENS}}
+  </div>
+  </div>
+
+  <div class="side{{SIDE_CLASS}}">
+    <div class="panel-title"><b>Reserves</b><span>bench</span></div>
+    {{BENCH}}
+    {{DNP}}
+    {{HIGHLIGHTS}}
+  </div>
+</div>

@@ -1,0 +1,345 @@
+<title>EuroLeague Prop Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a sticky filter rail over a dense board — one block per player, books as columns,
+   the best price in each row lit in board green, value prices tagged amber. */
+:root {
+  --bg: #eef2f0;
+  --surface: #ffffff;
+  --surface-2: #f6f8f7;
+  --ink: #14201b;
+  --muted: #5b6a63;
+  --line: #d8e0dc;
+  --accent: #0d7a50;
+  --accent-ink: #ffffff;
+  --best: #d3eee0;
+  --best-ink: #0a5a3b;
+  --value: #a8650c;
+  --value-bg: #fbecd2;
+  --arb: #5b3fc4;
+  --arb-bg: #ebe6fb;
+  --font-display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --radius: 8px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e1412; --surface: #151d1a; --surface-2: #1a2420; --ink: #e5ede9; --muted: #93a39b;
+    --line: #27332e; --accent: #3cc489; --accent-ink: #062016; --best: #173d2c; --best-ink: #7fe0b2;
+    --value: #f0b35a; --value-bg: #3a2a12; --arb: #a996ff; --arb-bg: #241d42; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1412; --surface: #151d1a; --surface-2: #1a2420; --ink: #e5ede9; --muted: #93a39b;
+  --line: #27332e; --accent: #3cc489; --accent-ink: #062016; --best: #173d2c; --best-ink: #7fe0b2;
+  --value: #f0b35a; --value-bg: #3a2a12; --arb: #a996ff; --arb-bg: #241d42; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.45; }
+.wrap { max-width: 1240px; margin: 0 auto; padding-inline: 16px; padding-block: 20px 48px; display: grid; gap: 16px; }
+
+/* header */
+header { display: grid; gap: 10px; }
+.title-row { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 16px; justify-content: space-between; }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(30px, 5vw, 44px); line-height: 1; margin: 0;
+     letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.built { color: var(--muted); font-size: 12.5px; }
+.books { display: flex; flex-wrap: wrap; gap: 6px; }
+.book-chip { display: inline-flex; gap: 6px; align-items: baseline; border: 1px solid var(--line); background: var(--surface);
+             border-radius: 999px; padding: 3px 10px; font-size: 12px; }
+.book-chip b { font-weight: 600; }
+.book-chip span { color: var(--muted); font-family: var(--font-mono); font-size: 11px; }
+
+/* tabs + filters */
+.rail { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg);
+        padding-block: 8px; display: grid; gap: 10px; border-bottom: 1px solid var(--line); }
+.tabs { display: flex; gap: 4px; flex-wrap: wrap; }
+.tab { font: 600 13px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+       padding: 7px 14px; border-radius: 999px; cursor: pointer; display: inline-flex; gap: 8px; align-items: center; }
+.tab[aria-selected="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tab .n { font-family: var(--font-mono); font-size: 11.5px; opacity: .75; }
+.filters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+select, input[type="search"], input[type="number"] {
+  font: 13px var(--font-body); color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 7px 10px; min-width: 0; }
+input[type="search"] { width: 200px; max-width: 100%; }
+.chips { display: flex; flex-wrap: wrap; gap: 4px; }
+.chip { font: 500 12px var(--font-body); border: 1px solid var(--line); background: var(--surface); color: var(--muted);
+        padding: 4px 9px; border-radius: 5px; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* legend */
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; color: var(--muted); font-size: 12px; align-items: center; }
+.legend i { display: inline-block; width: 22px; height: 14px; border-radius: 3px; vertical-align: -2px; margin-right: 5px; }
+.lg-best { background: var(--best); border: 1px solid var(--accent); }
+.lg-value { background: var(--value-bg); border: 1px solid var(--value); }
+.ms-tag { font: 600 9px var(--font-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 3px;
+          padding: 0 3px; margin-left: 3px; vertical-align: 1px; }
+
+/* board */
+.board { display: grid; gap: 12px; }
+.game-head { font-family: var(--font-display); font-weight: 700; font-size: 22px; text-transform: uppercase;
+             letter-spacing: .02em; display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; margin-top: 8px; }
+.game-head span { font-family: var(--font-mono); font-size: 12px; font-weight: 500; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.player { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); min-width: 0; }
+.player-head { display: flex; flex-wrap: wrap; gap: 2px 12px; align-items: baseline; padding: 10px 14px 6px; }
+.player-head h3 { font-family: var(--font-display); font-weight: 700; font-size: 20px; margin: 0; letter-spacing: .01em; }
+.player-head .team { color: var(--muted); font-size: 12.5px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-variant-numeric: tabular-nums; }
+.player table { table-layout: fixed; min-width: 760px; }
+.player col.c-mk { width: 22%; } .player col.c-side { width: 8%; } .player col.c-fair { width: 8%; }
+th, td { padding: 5px 8px; text-align: right; white-space: nowrap; border-top: 1px solid var(--line); }
+th { font: 600 10.5px var(--font-body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted);
+     background: var(--surface-2); border-top: 0; }
+th:first-child, td:first-child { text-align: left; padding-left: 14px; }
+td.mk { font-weight: 500; }
+td.mk small { color: var(--muted); font-weight: 400; }
+tr.under td { border-top-style: dashed; }
+td.odd { font-family: var(--font-mono); font-size: 13px; min-width: 64px; }
+td.odd.none { color: var(--line); }
+td.odd.best { background: var(--best); color: var(--best-ink); font-weight: 600; box-shadow: inset 0 0 0 1px var(--accent); }
+td.odd.val { position: relative; }
+td.odd.val::after { content: ""; position: absolute; top: 4px; right: 3px; width: 6px; height: 6px; border-radius: 50%; background: var(--value); }
+td.odd.val:not(.best) { background: var(--value-bg); }
+td.fair { font-family: var(--font-mono); font-size: 12.5px; color: var(--muted); border-left: 1px solid var(--line); }
+.side { font: 600 10.5px var(--font-body); text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+
+/* value + arb lists */
+.list { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); }
+.edge { font-family: var(--font-mono); font-weight: 600; color: var(--value); }
+.bookname { font-weight: 600; }
+td.left, th.left { text-align: left; }
+.arbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); gap: 12px; }
+.arb { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 10px; min-width: 0; }
+.arb-top { display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.arb-top h3 { font-family: var(--font-display); font-weight: 700; font-size: 19px; margin: 0; }
+.arb-top .sub { color: var(--muted); font-size: 12.5px; }
+.profit { font: 600 15px var(--font-mono); color: var(--arb); background: var(--arb-bg); padding: 2px 8px; border-radius: 5px; white-space: nowrap; }
+.legs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.leg { border: 1px solid var(--line); border-radius: 6px; padding: 7px 10px; display: grid; gap: 2px; }
+.leg .k { font: 600 10.5px var(--font-body); text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.leg .o { font: 600 18px var(--font-mono); }
+.leg .stake { font-family: var(--font-mono); font-size: 12px; color: var(--muted); }
+.stake-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; color: var(--muted); font-size: 13px; }
+.stake-row input { width: 120px; font-family: var(--font-mono); }
+.warn { color: var(--muted); font-size: 12px; }
+
+.empty { color: var(--muted); padding: 24px; text-align: center; background: var(--surface); border: 1px dashed var(--line); border-radius: var(--radius); }
+.notes { color: var(--muted); font-size: 12.5px; max-width: 72ch; display: grid; gap: 6px; }
+.notes p { margin: 0; }
+@media (max-width: 560px) {
+  input[type="search"] { width: 100%; }
+  .legs { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: no-preference) { .tab, .chip { transition: background .12s, color .12s; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="title-row">
+      <h1>EuroLeague <span>Prop Board</span></h1>
+      <div class="built" id="built"></div>
+    </div>
+    <div class="books" id="books" aria-label="Last scrape per bookmaker"></div>
+  </header>
+
+  <div class="rail">
+    <div class="tabs" role="tablist">
+      <button class="tab" role="tab" id="tab-board" data-tab="board">Board <span class="n" id="n-board"></span></button>
+      <button class="tab" role="tab" id="tab-value" data-tab="value">Value bets <span class="n" id="n-value"></span></button>
+      <button class="tab" role="tab" id="tab-arb" data-tab="arb">Arbitrage <span class="n" id="n-arb"></span></button>
+    </div>
+    <div class="filters">
+      <select id="f-game" aria-label="Game"></select>
+      <input type="search" id="f-player" placeholder="Search player" aria-label="Search player">
+      <div class="chips" id="f-market" aria-label="Market"></div>
+    </div>
+    <div class="filters" id="board-opts">
+      <label class="toggle"><input type="checkbox" id="f-multi" checked> Only lines with 2+ books</label>
+      <label class="toggle"><input type="checkbox" id="f-ms"> Include milestone-only lines</label>
+      <div class="legend">
+        <span><i class="lg-best"></i>Best price</span>
+        <span><i class="lg-value"></i>Above fair (value)</span>
+        <span><span class="ms-tag">M</span> priced from a milestone (15+ = Over 14.5)</span>
+      </div>
+    </div>
+  </div>
+
+  <main id="view"></main>
+
+  <section class="notes">
+    <p><b>Fair</b> is the no-vig price: each book's over/under pair at a line is turned into a probability with its margin removed, then averaged across books.</p>
+    <p><b>Value bets</b> compare a book's price with the fair price of the <i>other</i> books (at least <span id="s-books"></span> books, edge from <span id="s-edge"></span>).
+       <b>Arbitrage</b> lines pay out on both sides when you take the best over and the best under at different books.</p>
+    <p>Prices move. Re-run <code>scrape_odds.py</code>, <code>compare_odds.py</code> and <code>build_odds_page.py</code> before betting, and check each book's rules (overtime, player not playing) for milestone lines.</p>
+  </section>
+</div>
+
+<script>
+const DATA = /*__DATA__*/null;
+const MARKETS = ["Points", "Rebounds", "Assists", "3PM", "Pts+Reb+Ast", "Pts+Reb", "Pts+Ast", "Reb+Ast",
+                 "Steals", "Blocks", "Turnovers", "Double-double", "1Q Points", "1H Points"];
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const fmt = (o) => (o == null ? "–" : o.toFixed(2));
+const lineTxt = (l) => (l == null ? "" : Number(l).toFixed(1));
+
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("propboard:" + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("propboard:" + k, JSON.stringify(v)); } catch {} },
+};
+const state = {
+  tab: store.get("tab", "board"),
+  game: store.get("game", "all"),
+  player: "",
+  market: store.get("market", "all"),
+  multi: store.get("multi", true),
+  ms: store.get("ms", false),
+  stake: store.get("stake", 1000),
+};
+
+// ---- header ----
+$("#built").textContent = `Built ${DATA.built} · ${DATA.rows.length.toLocaleString()} lines · ${DATA.players.length} players`;
+$("#books").innerHTML = DATA.books.map((b) => `<span class="book-chip"><b>${esc(b.name)}</b><span>${esc(b.scraped || "no data")}</span></span>`).join("");
+$("#s-books").textContent = DATA.settings.minBooks;
+$("#s-edge").textContent = Math.round(DATA.settings.minEdge * 100) + "%";
+
+// ---- filters ----
+const gameSel = $("#f-game");
+gameSel.innerHTML = `<option value="all">All games</option>` +
+  DATA.games.map((g, i) => `<option value="${i}">${esc(g.kickoff)} · ${esc(g.name)}</option>`).join("");
+if (state.game !== "all" && !DATA.games[state.game]) state.game = "all";
+gameSel.value = String(state.game);
+const present = new Set(DATA.rows.map((r) => r.m));
+const marketList = ["all", ...MARKETS.filter((m) => present.has(m))];
+if (!marketList.includes(state.market)) state.market = "all";
+$("#f-market").innerHTML = marketList.map((m) =>
+  `<button class="chip" data-m="${esc(m)}" aria-pressed="${m === state.market}">${m === "all" ? "All markets" : esc(m)}</button>`).join("");
+$("#f-multi").checked = state.multi;
+$("#f-ms").checked = state.ms;
+
+gameSel.addEventListener("change", () => { state.game = gameSel.value === "all" ? "all" : +gameSel.value; store.set("game", state.game); render(); });
+$("#f-player").addEventListener("input", (e) => { state.player = e.target.value.trim().toLowerCase(); render(); });
+$("#f-market").addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  state.market = b.dataset.m; store.set("market", state.market);
+  document.querySelectorAll("#f-market .chip").forEach((c) => c.setAttribute("aria-pressed", c === b));
+  render();
+});
+$("#f-multi").addEventListener("change", (e) => { state.multi = e.target.checked; store.set("multi", state.multi); render(); });
+$("#f-ms").addEventListener("change", (e) => { state.ms = e.target.checked; store.set("ms", state.ms); render(); });
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => { state.tab = t.dataset.tab; store.set("tab", state.tab); render(); }));
+
+function playerOk(pi) {
+  const p = DATA.players[pi];
+  if (state.game !== "all" && p.g !== state.game) return false;
+  if (state.player && !p.name.toLowerCase().includes(state.player)) return false;
+  return true;
+}
+const marketOk = (m) => state.market === "all" || m === state.market;
+
+// ---- board ----
+function boardRows() {
+  return DATA.rows.filter((r) => {
+    if (!playerOk(r.p) || !marketOk(r.m)) return false;
+    const priced = r.o.filter((o) => o != null).length;
+    if (state.multi && priced < 2) return false;
+    if (!state.ms && r.o.every((o, i) => o == null || r.ms[i])) return false;   // only milestone prices
+    return true;
+  });
+}
+
+function renderBoard() {
+  const rows = boardRows();
+  if (!rows.length) return `<div class="empty">No lines match these filters. Try “All markets”, another game, or untick “Only lines with 2+ books”.</div>`;
+  const byPlayer = new Map();
+  rows.forEach((r) => { if (!byPlayer.has(r.p)) byPlayer.set(r.p, []); byPlayer.get(r.p).push(r); });
+  const head = `<tr><th>Market</th><th>Side</th>${DATA.books.map((b) => `<th>${esc(b.name)}</th>`).join("")}<th>Fair</th></tr>`;
+  const cols = `<colgroup><col class="c-mk"><col class="c-side">${DATA.books.map(() => "<col>").join("")}<col class="c-fair"></colgroup>`;
+  let out = "", lastGame = -1;
+  for (const [pi, list] of byPlayer) {
+    const p = DATA.players[pi];
+    if (p.g !== lastGame) {
+      const g = DATA.games[p.g];
+      out += `<h2 class="game-head">${esc(g.name)} <span>${esc(g.kickoff)}</span></h2>`;
+      lastGame = p.g;
+    }
+    list.sort((a, b) => MARKETS.indexOf(a.m) - MARKETS.indexOf(b.m) || a.l - b.l || (a.s === "Over" ? -1 : 1));
+    const body = list.map((r) => {
+      const priced = r.o.filter((o) => o != null);
+      const best = Math.max(...priced), worst = Math.min(...priced);
+      const n = priced.length;
+      const cells = r.o.map((o, i) => {
+        if (o == null) return `<td class="odd none">·</td>`;
+        const cls = ["odd"];
+        if (o === best && n > 1 && best > worst) cls.push("best");   // a tie across books isn't a "best"
+        if (r.v[i] != null) cls.push("val");
+        const tip = r.v[i] != null ? ` title="+${r.v[i]}% vs fair of the other books"` : "";
+        const ms = r.ms[i] ? `<span class="ms-tag" title="Priced from the ${Math.round(r.l + 0.5)}+ milestone">M</span>` : "";
+        return `<td class="${cls.join(" ")}"${tip}>${fmt(o)}${ms}</td>`;
+      }).join("");
+      return `<tr class="${r.s === "Under" ? "under" : ""}"><td class="mk">${esc(r.m)} <small>${lineTxt(r.l)}</small></td>` +
+             `<td><span class="side">${esc(r.s)}</span></td>${cells}<td class="fair">${fmt(r.f)}</td></tr>`;
+    }).join("");
+    out += `<article class="player"><div class="player-head"><h3>${esc(p.name)}</h3>` +
+           `<span class="team">${esc(p.team || "")}</span></div>` +
+           `<div class="scroll"><table>${cols}${head}${body}</table></div></article>`;
+  }
+  return `<div class="board">${out}</div>`;
+}
+
+// ---- value ----
+function renderValue() {
+  const list = DATA.value.filter((v) => playerOk(v.p) && marketOk(v.m));
+  if (!list.length) return `<div class="empty">No value bets for these filters.</div>`;
+  const rows = list.map((v) => {
+    const p = DATA.players[v.p];
+    return `<tr><td class="edge">+${v.e.toFixed(1)}%</td><td class="left"><b>${esc(p.name)}</b><br><small class="warn">${esc(DATA.games[p.g].name)}</small></td>` +
+      `<td class="left">${esc(v.m)} ${esc(v.s)} ${lineTxt(v.l)}${v.ms ? ` <span class="ms-tag" title="Priced from the ${Math.round(v.l + 0.5)}+ milestone">M</span>` : ""}</td>` +
+      `<td class="left bookname">${esc(DATA.books[v.b].name)}</td><td class="odd">${fmt(v.o)}</td>` +
+      `<td class="fair">${fmt(v.f)}</td><td>${v.n}</td></tr>`;
+  }).join("");
+  return `<div class="list scroll"><table><tr><th class="left">Edge</th><th class="left">Player</th><th class="left">Bet</th>` +
+         `<th class="left">Book</th><th>Odds</th><th>Fair</th><th>Books</th></tr>${rows}</table></div>`;
+}
+
+// ---- arbitrage ----
+function renderArb() {
+  const list = DATA.arb.filter((a) => playerOk(a.p) && marketOk(a.m));
+  if (!list.length) return `<div class="empty">No arbitrage lines for these filters.</div>`;
+  const S = Math.max(0, +state.stake || 0);
+  const cards = list.map((a) => {
+    const p = DATA.players[a.p];
+    const io = 1 / a.oo, iu = 1 / a.uo;
+    const so = S * io / (io + iu), su = S - so, pay = so * a.oo;
+    const leg = (k, o, b, st, ms) => `<div class="leg"><span class="k">${k} · ${esc(DATA.books[b].name)}${ms ? ' <span class="ms-tag">M</span>' : ""}</span>` +
+      `<span class="o">${fmt(o)}</span><span class="stake">stake ${st.toFixed(0)}</span></div>`;
+    return `<article class="arb"><div class="arb-top"><div><h3>${esc(p.name)}</h3>` +
+      `<div class="sub">${esc(a.m)} ${lineTxt(a.l)} · ${esc(DATA.games[p.g].name)}</div></div>` +
+      `<span class="profit">+${a.pr.toFixed(2)}%</span></div>` +
+      `<div class="legs">${leg("Over", a.oo, a.ob, so, a.oms)}${leg("Under", a.uo, a.ub, su, false)}</div>` +
+      `<div class="warn">Returns ${pay.toFixed(0)} either way${a.oms ? " · over leg is a milestone bet, check its rules" : ""}</div></article>`;
+  }).join("");
+  return `<div class="stake-row"><label for="stake">Total stake</label><input type="number" id="stake" min="0" step="100" value="${S}"> ` +
+         `<span>split so both legs return the same</span></div><div class="arbs">${cards}</div>`;
+}
+
+function render() {
+  document.querySelectorAll(".tab").forEach((t) => t.setAttribute("aria-selected", t.dataset.tab === state.tab));
+  $("#board-opts").hidden = state.tab !== "board";
+  $("#n-board").textContent = boardRows().length.toLocaleString();
+  $("#n-value").textContent = DATA.value.filter((v) => playerOk(v.p) && marketOk(v.m)).length;
+  $("#n-arb").textContent = DATA.arb.filter((a) => playerOk(a.p) && marketOk(a.m)).length;
+  $("#view").innerHTML = state.tab === "value" ? renderValue() : state.tab === "arb" ? renderArb() : renderBoard();
+  const stake = $("#stake");
+  if (stake) stake.addEventListener("change", () => { state.stake = +stake.value || 0; store.set("stake", state.stake); render(); });
+}
+render();
+</script>

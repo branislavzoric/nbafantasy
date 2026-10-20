@@ -1,0 +1,289 @@
+<title>EuroLeague Prop Edges</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a betting-slip column. Summary strip, then two sections (value bets, arbitrage)
+   as slip-like cards; each card opens to show every book's price on that line. */
+:root {
+  --bg: #f3f5f1;          /* paper with a green bias */
+  --surface: #ffffff;
+  --ink: #15201b;
+  --muted: #5d6a63;
+  --rule: #dfe5df;
+  --value: #0b7a48;       /* pitch green: value */
+  --value-soft: #e2f3ea;
+  --arb: #9a6410;         /* brass: arbitrage */
+  --arb-soft: #f8edd8;
+  --warn: #a8461d;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1411; --surface: #151e1a; --ink: #e7eee9; --muted: #95a39b; --rule: #26322c;
+    --value: #45c98a; --value-soft: #133325; --arb: #e3a948; --arb-soft: #34270f; --warn: #f08a5d;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1411; --surface: #151e1a; --ink: #e7eee9; --muted: #95a39b; --rule: #26322c;
+  --value: #45c98a; --value-soft: #133325; --arb: #e3a948; --arb-soft: #34270f; --warn: #f08a5d;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45; }
+.wrap { max-width: 860px; margin: 0 auto; padding-inline: 16px; padding-block: 28px 56px; display: grid; gap: 28px; }
+.num { font-variant-numeric: tabular-nums; }
+
+header { display: grid; gap: 10px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: clamp(38px, 8vw, 56px); line-height: .95; letter-spacing: .005em; text-wrap: balance; }
+.games { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; }
+.games span b { font-family: var(--mono); font-weight: 600; font-size: 13px; color: var(--muted); margin-right: 6px; }
+.books { display: flex; flex-wrap: wrap; gap: 6px; }
+.book { font-size: 12px; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); color: var(--muted); }
+.book b { color: var(--ink); font-weight: 600; margin-right: 4px; }
+.book.stale { border-style: dashed; }
+.book.stale b { color: var(--muted); text-decoration: line-through; }
+
+.summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; }
+.summary div { padding: 12px 16px; display: grid; gap: 2px; }
+.summary div + div { border-left: 1px solid var(--rule); }
+.summary span { font-size: 12px; color: var(--muted); }
+.summary b { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; }
+.summary .v b { color: var(--value); } .summary .a b { color: var(--arb); }
+@media (max-width: 560px) {
+  .summary { grid-template-columns: 1fr 1fr; }
+  .summary div:nth-child(3) { border-left: 0; }
+  .summary div:nth-child(n+3) { border-top: 1px solid var(--rule); }
+}
+
+.controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chip { font: inherit; font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--rule); background: var(--surface); color: var(--ink); cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chip:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--value); outline-offset: 2px; }
+.toggle { display: inline-flex; gap: 6px; align-items: center; font-size: 13px; color: var(--muted); margin-left: auto; cursor: pointer; }
+
+section { display: grid; gap: 12px; }
+.sec-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 2px solid var(--ink); padding-bottom: 6px; }
+h2 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 30px; text-transform: uppercase; letter-spacing: .02em; }
+.sec-head p { margin: 0; font-size: 13px; color: var(--muted); max-width: 52ch; }
+.list { display: grid; gap: 8px; }
+.empty { padding: 20px; text-align: center; color: var(--muted); border: 1px dashed var(--rule); border-radius: 10px; }
+
+/* slip card */
+.slip { background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; overflow: hidden; }
+.slip > button { all: unset; box-sizing: border-box; width: 100%; cursor: pointer; display: grid; grid-template-columns: 86px minmax(0, 1fr) auto; gap: 14px; align-items: center; padding: 12px 14px; }
+.slip > button:focus-visible { outline: 2px solid var(--value); outline-offset: -2px; }
+.badge { display: grid; justify-items: center; padding: 6px 0 5px; border-radius: 8px; }
+.badge b { font-family: var(--display); font-weight: 800; font-size: 26px; line-height: 1; }
+.badge small { font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.value .badge { background: var(--value-soft); color: var(--value); }
+.arbc .badge { background: var(--arb-soft); color: var(--arb); }
+.who { min-width: 0; display: grid; gap: 1px; }
+.who .pl { font-weight: 700; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who .bet { font-size: 14px; }
+.who .bet b { font-weight: 700; }
+.who .meta { font-size: 12px; color: var(--muted); }
+.ms { display: inline-block; font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--warn); border: 1px solid currentColor; border-radius: 4px; padding: 0 4px; margin-left: 6px; vertical-align: 1px; }
+.price { text-align: right; display: grid; gap: 1px; }
+.price .o { font-family: var(--mono); font-weight: 600; font-size: 20px; }
+.price .bk { font-size: 12px; font-weight: 600; }
+.price .fair { font-size: 12px; color: var(--muted); }
+.chev { display: inline-block; transition: transform .15s; color: var(--muted); }
+.slip.open .chev { transform: rotate(90deg); }
+
+.detail[hidden] { display: none; }
+.detail { border-top: 1px solid var(--rule); padding: 12px 14px 14px; display: grid; gap: 12px; }
+.scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; font-size: 13px; }
+th, td { padding: 6px 8px; text-align: center; white-space: nowrap; }
+th { font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); border-bottom: 1px solid var(--rule); }
+th:first-child, td:first-child { text-align: left; }
+td.o { font-family: var(--mono); font-weight: 500; }
+td.o.none { color: var(--muted); }
+td.o.pick { font-weight: 600; color: var(--value); background: var(--value-soft); border-radius: 4px; }
+.arbc td.o.pick { color: var(--arb); background: var(--arb-soft); }
+td.o sup { font-family: var(--body); font-size: 9px; color: var(--warn); margin-left: 2px; }
+
+/* arbitrage legs + calculator */
+.legs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.leg { border: 1px solid var(--rule); border-radius: 8px; padding: 9px 11px; display: grid; gap: 2px; }
+.leg span { font-size: 12px; color: var(--muted); }
+.leg b { font-family: var(--mono); font-weight: 600; font-size: 18px; }
+.leg .stake { font-size: 14px; color: var(--ink); }
+.ret { font-size: 13px; color: var(--muted); }
+.ret b { color: var(--ink); }
+.stake-row { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; font-size: 14px; background: var(--surface); border: 1px solid var(--rule); border-radius: 10px; padding: 10px 14px; }
+.stake-row label { font-weight: 700; }
+.stake-row input { font: inherit; font-family: var(--mono); width: 120px; padding: 6px 8px; border: 1px solid var(--rule); border-radius: 6px; background: var(--bg); color: var(--ink); }
+.stake-row span { color: var(--muted); font-size: 13px; }
+
+.notes { font-size: 13px; color: var(--muted); display: grid; gap: 6px; border-top: 1px solid var(--rule); padding-top: 14px; }
+.notes p { margin: 0; max-width: 72ch; }
+@media (max-width: 520px) {
+  .slip > button { grid-template-columns: 78px minmax(0, 1fr); }
+  .price { grid-column: 2; text-align: left; grid-auto-flow: column; justify-content: start; gap: 10px; align-items: baseline; }
+  .legs { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .chev { transition: none; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow" id="eyebrow">EuroLeague player props</div>
+    <h1>Value bets &amp; arbitrage</h1>
+    <div class="games" id="games"></div>
+    <div class="books" id="books"></div>
+  </header>
+
+  <div class="summary" id="summary"></div>
+
+  <div class="controls">
+    <div id="game-chips" style="display:flex;flex-wrap:wrap;gap:8px"></div>
+    <label class="toggle"><input type="checkbox" id="f-ms" checked> Include milestone prices</label>
+  </div>
+
+  <section>
+    <div class="sec-head"><h2>Value bets</h2>
+      <p>One book pays more than the fair price from the other books' no-vig consensus. Tap a bet to see every book.</p></div>
+    <div class="list" id="value"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h2>Arbitrage</h2>
+      <p>Best over and best under at different books add up to a guaranteed return. Stakes are split so both legs pay the same.</p></div>
+    <div class="stake-row"><label for="stake">Total stake</label><input type="number" id="stake" min="0" step="100" value="1000"><span>RSD, split across both legs</span></div>
+    <div class="list" id="arb"></div>
+  </section>
+
+  <div class="notes">
+    <p><span class="ms" style="margin:0 4px 0 0">M</span> Milestone price: the book only offers “N+” (for example 3+ assists), priced here as over N−0.5. Settlement rules can differ from a normal over/under, so check them before betting.</p>
+    <p>Edge = odds ÷ fair odds − 1. Fair odds come from the other books on the same line with their margin removed, so a book never sets its own fair price.</p>
+    <p id="built"></p>
+  </div>
+</div>
+
+<script>
+const DATA = /*DATA*/null;
+const $ = (s) => document.querySelector(s);
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const odd = (o) => (o == null ? "–" : Number(o).toFixed(2));
+const lineTxt = (l) => Number(l).toFixed(1);
+const bookName = (id) => (DATA.books.find((b) => b.id === id) || { name: id }).name;
+const store = {
+  get(k, d) { try { const v = localStorage.getItem("edges:" + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v) { try { localStorage.setItem("edges:" + k, JSON.stringify(v)); } catch {} },
+};
+const state = { game: "all", ms: store.get("ms", true), stake: store.get("stake", 1000), open: new Set() };
+
+// ---- header ----
+$("#eyebrow").textContent = `EuroLeague player props · ${new Date(DATA.day + "T12:00").toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}`;
+$("#games").innerHTML = DATA.games.map((g) => `<span><b>${esc(g.kickoff)}</b>${esc(g.name)}</span>`).join("");
+$("#books").innerHTML = DATA.books.map((b) => b.fresh
+  ? `<span class="book"><b>${esc(b.name)}</b>${esc(b.scraped)}</span>`
+  : `<span class="book stale" title="No prices for these games in the latest scrape"><b>${esc(b.name)}</b>no prices yet</span>`).join("");
+$("#built").textContent = `Built ${DATA.built} from the latest scrape of each book.`;
+$("#f-ms").checked = state.ms;
+$("#stake").value = state.stake;
+
+const gameChips = $("#game-chips");
+gameChips.innerHTML = [`<button class="chip" data-g="all">All games</button>`,
+  ...DATA.games.map((g) => `<button class="chip" data-g="${esc(g.name)}">${esc(g.name)}</button>`)].join("");
+gameChips.addEventListener("click", (e) => {
+  const b = e.target.closest(".chip"); if (!b) return;
+  state.game = b.dataset.g; render();
+});
+$("#f-ms").addEventListener("change", (e) => { state.ms = e.target.checked; store.set("ms", state.ms); render(); });
+$("#stake").addEventListener("input", (e) => { state.stake = Math.max(0, +e.target.value || 0); store.set("stake", state.stake); renderArb(); });
+
+const keep = (x, msFlag) => (state.game === "all" || x.g === state.game) && (state.ms || !msFlag);
+
+// every book's prices on a line; `pick` marks the bet's own cells
+function priceTable(all, picks) {
+  const sides = ["Over", "Under"].filter((s) => all[s]);
+  if (!sides.length) return "";
+  const head = `<tr><th>Side</th>${DATA.books.map((b) => `<th>${esc(b.name)}</th>`).join("")}</tr>`;
+  const rows = sides.map((s) => `<tr><td>${s}</td>${all[s].map((c, i) => {
+    const id = DATA.books[i].id;
+    const pick = picks.some((p) => p.s === s && p.b === id);
+    return `<td class="o num${c.o == null ? " none" : ""}${pick ? " pick" : ""}">${odd(c.o)}${c.ms ? "<sup>M</sup>" : ""}</td>`;
+  }).join("")}</tr>`).join("");
+  return `<div class="scroll"><table>${head}${rows}</table></div>`;
+}
+
+function card(kind, key, top, detail) {
+  const open = state.open.has(key);
+  return `<article class="slip ${kind}${open ? " open" : ""}" data-key="${esc(key)}">
+    <button type="button" aria-expanded="${open}">${top}</button>
+    <div class="detail"${open ? "" : " hidden"}>${detail}</div></article>`;
+}
+
+function renderValue() {
+  const list = DATA.value.filter((v) => keep(v, v.ms));
+  $("#value").innerHTML = list.length ? list.map((v, i) => {
+    const key = `v:${v.g}:${v.p}:${v.m}:${v.l}:${v.s}:${v.b}`;
+    const top = `<span class="badge"><b class="num">+${v.e.toFixed(1)}%</b><small>edge</small></span>
+      <span class="who"><span class="pl">${esc(v.p)}</span>
+        <span class="bet"><b>${esc(v.m)} ${esc(v.s)} ${lineTxt(v.l)}</b>${v.ms ? '<span class="ms" title="Milestone price">M</span>' : ""}</span>
+        <span class="meta">${esc(v.t ? v.t + " · " : "")}${esc(v.g)}</span></span>
+      <span class="price"><span class="o num">${odd(v.o)}</span><span class="bk">${esc(bookName(v.b))}</span>
+        <span class="fair num">fair ${odd(v.f)} <span class="chev" aria-hidden="true">›</span></span></span>`;
+    const detail = `${priceTable(v.all, [{ s: v.s, b: v.b }])}
+      <div class="ret">Fair price from ${v.n} other book${v.n === 1 ? "" : "s"}. At ${odd(v.o)} a 1,000 RSD bet returns <b class="num">${Math.round(v.o * 1000).toLocaleString("en-GB")}</b> if it wins.</div>`;
+    return card("value", key, top, detail);
+  }).join("") : `<div class="empty">No value bets for this filter.</div>`;
+}
+
+function renderArb() {
+  const S = state.stake;
+  const list = DATA.arb.filter((a) => keep(a, a.oms));
+  $("#arb").innerHTML = list.length ? list.map((a) => {
+    const key = `a:${a.g}:${a.p}:${a.m}:${a.l}`;
+    const io = 1 / a.oo, iu = 1 / a.uo;
+    const so = Math.round(S * io / (io + iu)), su = S - so;
+    const worst = Math.min(so * a.oo, su * a.uo);
+    const top = `<span class="badge"><b class="num">+${a.pr.toFixed(1)}%</b><small>profit</small></span>
+      <span class="who"><span class="pl">${esc(a.p)}</span>
+        <span class="bet"><b>${esc(a.m)} ${lineTxt(a.l)}</b>${a.oms ? '<span class="ms" title="Over leg is a milestone price">M</span>' : ""}</span>
+        <span class="meta">${esc(a.t ? a.t + " · " : "")}${esc(a.g)}</span></span>
+      <span class="price"><span class="o num">${odd(a.oo)} / ${odd(a.uo)}</span>
+        <span class="bk">${esc(bookName(a.ob))} · ${esc(bookName(a.ub))}</span>
+        <span class="fair num">over / under <span class="chev" aria-hidden="true">›</span></span></span>`;
+    const detail = `<div class="legs">
+        <div class="leg"><span>Over ${lineTxt(a.l)} · ${esc(bookName(a.ob))}${a.oms ? " (milestone)" : ""}</span><b class="num">${odd(a.oo)}</b><span class="stake num">Stake ${so.toLocaleString("en-GB")}</span></div>
+        <div class="leg"><span>Under ${lineTxt(a.l)} · ${esc(bookName(a.ub))}</span><b class="num">${odd(a.uo)}</b><span class="stake num">Stake ${su.toLocaleString("en-GB")}</span></div>
+      </div>
+      <div class="ret">Returns at least <b class="num">${Math.round(worst).toLocaleString("en-GB")}</b> on ${S.toLocaleString("en-GB")} staked (<b class="num">${worst - S >= 0 ? "+" : ""}${Math.round(worst - S).toLocaleString("en-GB")}</b>)${a.oms ? ". The over leg is a milestone bet: confirm the book settles it like a normal over" : ""}.</div>
+      ${priceTable(a.all, [{ s: "Over", b: a.ob }, { s: "Under", b: a.ub }])}`;
+    return card("arbc", key, top, detail);
+  }).join("") : `<div class="empty">No arbitrage for this filter.</div>`;
+}
+
+function renderSummary() {
+  const v = DATA.value.filter((x) => keep(x, x.ms)), a = DATA.arb.filter((x) => keep(x, x.oms));
+  const best = (xs, f) => (xs.length ? Math.max(...xs.map(f)).toFixed(1) + "%" : "–");
+  $("#summary").innerHTML = `<div class="v"><span>Value bets</span><b class="num">${v.length}</b></div>
+    <div class="v"><span>Best edge</span><b class="num">${best(v, (x) => x.e)}</b></div>
+    <div class="a"><span>Arbitrage lines</span><b class="num">${a.length}</b></div>
+    <div class="a"><span>Best arb profit</span><b class="num">${best(a, (x) => x.pr)}</b></div>`;
+}
+
+function render() {
+  gameChips.querySelectorAll(".chip").forEach((c) => c.setAttribute("aria-pressed", c.dataset.g === state.game));
+  renderSummary(); renderValue(); renderArb();
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest(".slip > button"); if (!btn) return;
+  const slip = btn.parentElement, key = slip.dataset.key;
+  const open = !state.open.has(key);
+  open ? state.open.add(key) : state.open.delete(key);
+  slip.classList.toggle("open", open);
+  btn.setAttribute("aria-expanded", open);
+  slip.querySelector(".detail").hidden = !open;
+});
+render();
+</script>

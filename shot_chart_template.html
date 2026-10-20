@@ -1,0 +1,101 @@
+<title>{{TITLE}}</title>
+<style>{{FONTS}}</style>
+<style>
+/* Player shot chart for one game: 540x675 CSS px rendered at 2x -> 1080x1350.
+   Half court drawn in feet (SVG viewBox 50 x 47, basket at the top).
+   Team colours come in as --team / --accent. */
+:root {
+  --team: #0E2240;
+  --accent: #FEC524;
+  --on-accent: #0E2240;
+  --accent-text: #FEC524;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .66);
+  --faint: rgba(255, 255, 255, .14);
+  --make: #2fd27a;
+  --miss: #ff5a4f;
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --line: rgba(25, 20, 15, .8);
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #121212; color: var(--ink); font-family: var(--font); width: 540px; height: 675px; overflow: hidden; }
+.page { width: 540px; height: 675px; position: relative; background: var(--team); padding: 12px 16px 12px; display: flex; flex-direction: column; gap: 9px; font-variant-numeric: tabular-nums; }
+
+header { display: flex; align-items: center; justify-content: space-between; height: 20px; }
+.tags { display: flex; gap: 6px; font-size: 9px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.tag-main { background: var(--accent); color: var(--on-accent); padding: 3px 7px; border-radius: 3px; }
+.tag-sub { border: 1px solid var(--muted); padding: 2px 7px; border-radius: 3px; }
+header .note { font-size: 9px; font-weight: 700; color: var(--muted); }
+
+.who { display: grid; grid-template-columns: 74px 1fr auto; gap: 12px; align-items: center; }
+.face { width: 74px; height: 74px; border-radius: 50%; overflow: hidden; background: var(--accent); position: relative; border: 2px solid var(--accent); }
+.face img { position: absolute; left: 50%; top: 4px; height: 86px; transform: translateX(-50%); }
+.face .ini { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 30px; color: var(--on-accent); }
+.first { font-size: 12px; font-weight: 700; color: var(--muted); }
+.last { font-family: var(--display); font-weight: 800; font-size: 40px; line-height: .9; text-transform: uppercase; }
+.meta { font-size: 9px; font-weight: 700; color: var(--muted); margin-top: 3px; letter-spacing: .04em; }
+.fg { display: grid; justify-items: end; line-height: 1; }
+.fg b { font-family: var(--display); font-weight: 800; font-size: 42px; color: var(--accent-text); }
+.fg span { font-size: 8.5px; font-weight: 800; letter-spacing: .1em; color: var(--muted); }
+
+/* ---- court ---- */
+.court-wrap { position: relative; border-radius: 6px; overflow: hidden; background: #141414; padding: 8px; }
+.court { position: relative; width: 470px; height: 442px; margin: 0 auto; border-radius: 2px; overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(140, 95, 40, .045) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(90deg, #ead5ab 0 9px, #e3cb9d 9px 18px, #eed9b0 18px 27px, #e0c798 27px 36px); }
+.court svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lines { fill: none; stroke: var(--line); stroke-width: .16; }
+.paint { fill: var(--team); }
+.paint-line { fill: none; stroke: rgba(255, 255, 255, .6); stroke-width: .16; }
+.zone3 { fill: rgba(0, 0, 0, .035); }
+.make { fill: var(--make); stroke: #0b3d22; stroke-width: .18; }
+.miss { stroke: var(--miss); stroke-width: .42; stroke-linecap: round; }
+.miss-bg { stroke: rgba(60, 10, 10, .55); stroke-width: .8; stroke-linecap: round; }
+.legend { position: absolute; right: 16px; bottom: 14px; display: flex; gap: 10px; font-size: 8.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: #2a2118; background: rgba(255, 255, 255, .7); padding: 4px 8px; border-radius: 4px; align-items: center; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: var(--make); border: 1px solid #0b3d22; margin-right: 4px; vertical-align: -1px; }
+.legend em { font-style: normal; color: var(--miss); font-size: 12px; margin-right: 3px; font-weight: 900; }
+
+/* ---- zones ---- */
+.zones { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; }
+.zone { background: rgba(255, 255, 255, .07); border: 1px solid var(--faint); border-radius: 6px; padding: 6px 9px 7px; display: grid; gap: 1px; }
+.zone .k { font-size: 8px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-text); }
+.zone b { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1; }
+.zone span { font-size: 8.5px; font-weight: 700; color: var(--muted); }
+.zone.none b { color: var(--muted); }
+.line { display: flex; justify-content: space-between; font-size: 9px; font-weight: 700; color: var(--muted); padding: 0 2px; }
+.line b { color: var(--ink); font-weight: 800; }
+</style>
+
+<div class="page">
+  <header>
+    <div class="tags"><span class="tag-main">Shot chart</span><span class="tag-sub">{{KICKER}}</span></div>
+    <span class="note">{{NOTE}}</span>
+  </header>
+  {{WHO}}
+  <div class="court-wrap">
+    <div class="court">
+      <svg viewBox="0 0 50 47" preserveAspectRatio="none" aria-hidden="true">
+        <path class="zone3" d="M0 0 H3 V14.2 A23.75 23.75 0 0 0 47 14.2 V0 H50 V47 H0 Z"/>
+        <rect class="paint" x="17" y="0" width="16" height="19"/>
+        <path class="paint-line" d="M17 0 V19 H33 V0"/>
+        <path class="lines" d="M19 19 A6 6 0 0 0 31 19"/>
+        <path class="paint-line" d="M19 19 A6 6 0 0 1 31 19" stroke-dasharray=".9 .7"/>
+        <path class="lines" d="M3 0 V14.2 A23.75 23.75 0 0 0 47 14.2 V0"/>
+        <path class="paint-line" d="M21 5.25 A4 4 0 0 0 29 5.25"/>
+        <line class="paint-line" x1="22" y1="4" x2="28" y2="4" stroke-width=".3"/>
+        <circle class="paint-line" cx="25" cy="5.25" r=".75"/>
+        <line class="lines" x1="0" y1="46.9" x2="50" y2="46.9"/>
+        <path class="lines" d="M19 47 A6 6 0 0 1 31 47"/>
+        <rect class="lines" x=".08" y=".08" width="49.84" height="46.84"/>
+        {{SHOTS}}
+      </svg>
+    </div>
+    <div class="legend"><span><i></i>Made</span><span><em>✕</em>Missed</span></div>
+  </div>
+  <div class="zones">{{ZONES}}</div>
+  <div class="line">{{LINE}}</div>
+</div>

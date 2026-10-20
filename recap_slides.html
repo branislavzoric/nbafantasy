@@ -1,0 +1,80 @@
+<title>Recap Reel Slide</title>
+<style>{{FONTS}}
+/* ---- ranked list with photos and bars (top-10 reel intro) ---- */
+.ranked { padding: 14px 20px 12px; display: flex; flex-direction: column; gap: 4px;
+  background: radial-gradient(circle at 50% -20%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 60%), var(--team); }
+.ranked .kicker { font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); display: flex; justify-content: space-between; }
+.ranked .kicker span { color: var(--muted); letter-spacing: .08em; }
+.ranked .r { display: grid; grid-template-columns: 30px 30px 1fr 120px 44px; gap: 8px; align-items: center; height: 38px; padding: 0 8px; border-radius: 6px; background: rgba(255, 255, 255, .05); }
+.ranked .r.one { background: color-mix(in srgb, var(--accent) 26%, transparent); box-shadow: inset 0 0 0 1.5px var(--accent); }
+.ranked .r > b { font-family: var(--display); font-weight: 800; font-size: 22px; color: var(--accent); text-align: center; }
+.ranked .f { width: 30px; height: 30px; border-radius: 50%; overflow: hidden; position: relative; background: rgba(255, 255, 255, .15); }
+.ranked .f img { position: absolute; left: 50%; top: 2px; height: 36px; transform: translateX(-50%); }
+.ranked .nm { min-width: 0; display: grid; }
+.ranked .nm b { font-family: var(--display); font-weight: 800; font-size: 18px; line-height: 1; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ranked .nm span { font-size: 8.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.ranked .bar { height: 7px; border-radius: 4px; background: rgba(255, 255, 255, .1); overflow: hidden; }
+.ranked .bar i { display: block; height: 100%; border-radius: 4px; }
+.ranked .fp { font-family: var(--display); font-weight: 800; font-size: 20px; text-align: right; }
+</style>
+<style>
+/* Slides for the nightly top-10 recap reel: 540x480 CSS px rendered at 2x -> 1080x960.
+   .photo-slide: big player photo (bottom half). .title-slide / .list-slide: intro and
+   outro panels. Team colours (photo slides) come in as --team / --accent. */
+:root {
+  --team: #0f1620;
+  --accent: #f58426;
+  --on-accent: #111111;
+  --accent-text: #f58426;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .68);
+  --faint: rgba(255, 255, 255, .14);
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--team); color: var(--ink); font-family: var(--font); width: 540px; height: 480px; overflow: hidden; font-variant-numeric: tabular-nums; }
+.slide { position: relative; width: 540px; height: 480px; overflow: hidden; }
+
+/* ---- player photo ---- */
+.photo-slide { background:
+    linear-gradient(115deg, transparent 0 56%, color-mix(in srgb, var(--accent) 88%, transparent) 56% 100%),
+    var(--team); }
+.photo-slide .jersey { position: absolute; right: 18px; top: 4px; font-family: var(--display); font-weight: 800; font-size: 250px; line-height: 1; color: var(--on-accent); opacity: .16; }
+.photo-slide .rank { position: absolute; left: 20px; top: 14px; font-family: var(--display); font-weight: 800; font-size: 74px; line-height: 1; color: var(--accent-text); }
+.photo-slide .rank small { font-size: 38px; vertical-align: 24px; }
+.photo-slide img { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 352px; }
+.photo-slide .nophoto { position: absolute; bottom: 120px; left: 0; right: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 150px; color: var(--muted); }
+.photo-slide .plate { position: absolute; left: 0; right: 0; bottom: 0; padding: 30px 22px 14px; background: linear-gradient(transparent, rgba(0, 0, 0, .78) 45%); display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; }
+.photo-slide .first { font-size: 14px; font-weight: 700; color: var(--muted); }
+.photo-slide .last { font-family: var(--display); font-weight: 800; font-size: 46px; line-height: .9; text-transform: uppercase; }
+.photo-slide .last.long { font-size: 36px; }
+.photo-slide .team { text-align: right; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.photo-slide .team b { display: block; font-family: var(--display); font-size: 30px; letter-spacing: 0; color: var(--accent-text); line-height: 1; }
+
+/* ---- intro ---- */
+.title-slide { display: grid; place-content: center; text-align: center; gap: 8px;
+  background: radial-gradient(circle at 50% 120%, color-mix(in srgb, var(--accent) 35%, transparent), transparent 60%), var(--team); }
+.title-slide .kicker { font-size: 12px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+.title-slide h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 92px; line-height: .86; text-transform: uppercase; }
+.title-slide h1 span { color: var(--accent); }
+.title-slide .sub { font-size: 13px; font-weight: 600; color: var(--muted); }
+.title-slide .games { margin-top: 10px; display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; }
+.title-slide .games span { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--faint); background: rgba(255, 255, 255, .05); }
+.title-slide .big-count { font-family: var(--display); font-weight: 800; font-size: 170px; line-height: .85; color: var(--accent); }
+
+/* ---- final list ---- */
+.list-slide { padding: 20px 22px; }
+.list-slide .kicker { font-size: 11px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent); }
+.list-slide h2 { margin: 2px 0 10px; font-family: var(--display); font-weight: 800; font-size: 36px; line-height: 1; text-transform: uppercase; }
+.list-slide .row { display: grid; grid-template-columns: 34px 1fr 54px 58px; align-items: center; gap: 6px; padding: 5px 0; border-top: 1px solid var(--faint); }
+.list-slide .row b { font-family: var(--display); font-weight: 800; font-size: 20px; color: var(--accent); }
+.list-slide .row .nm { font-family: var(--display); font-weight: 700; font-size: 19px; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.list-slide .row .tm { font-size: 10px; font-weight: 800; letter-spacing: .06em; color: var(--muted); }
+.list-slide .row .fp { text-align: right; font-family: var(--display); font-weight: 700; font-size: 20px; }
+.list-slide .row.first .nm, .list-slide .row.first .fp { color: var(--accent); }
+</style>
+
+{{BODY}}

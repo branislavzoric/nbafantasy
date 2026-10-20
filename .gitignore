@@ -1,0 +1,28 @@
+# Code-only repo: everything at the top level is ignored unless listed below.
+# Data, media and generated output (News/, Odds/, Content/, Reels/, Box Scores/, headshots/ ...) stay out of git;
+# see docs/ARCHITECTURE.md, "State and storage".
+/*
+!/.gitignore
+!/.env.example
+!/README.md
+!/requirements.txt
+!/*.py
+!/*.html
+!/depth_overrides.json
+!/projected_wins.json
+!/headlines.json
+!/outlooks.json
+!/odds_scrapers/
+!/tools_fb/
+!/n8n Docker/
+!/fonts/
+!/logos/
+!/docs/
+!/ops/
+
+# never commit secrets or caches
+.env
+tokens.json
+__pycache__/
+*.pyc
+*.log

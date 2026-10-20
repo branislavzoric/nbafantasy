@@ -1,0 +1,413 @@
+{
+  "id": "nbaCarouselWf001",
+  "name": "NBA Fantasy - Post Carousel",
+  "active": false,
+  "nodes": [
+    {
+      "id": "c4000000-0000-4000-8000-000000000001",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000002",
+      "name": "Read Approved JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "fileSelector": "/files/content/carousels/approved/*.json",
+        "options": {}
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000003",
+      "name": "Pick Round",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Lowest round first. Files are round_NN.json; emit one item per card image.\nconst all = $input.all();\nif (!all.length) return [];\nconst order = all.map((item, i) => ({ i, name: item.binary.data.fileName }))\n  .sort((a, b) => a.name.localeCompare(b.name));\nconst round = JSON.parse((await this.helpers.getBinaryDataBuffer(order[0].i, 'data')).toString('utf8'));\nreturn round.images.map((image, n) => ({ json: { slug: round.slug, caption: round.caption.slice(0, 2200), image, n } }));"
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000004",
+      "name": "Read Card PNG",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "fileSelector": "=/files/content/carousels/approved/{{ $json.image }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000005",
+      "name": "Upload to Cloudinary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/biah2b8d/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "upload_preset",
+              "value": "nbafantasy"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000006",
+      "name": "IG Create Item",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $json.secure_url.replace(/\\.png$/, '.jpg') }}"
+            },
+            {
+              "name": "is_carousel_item",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000007",
+      "name": "Collect Children",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// All child containers -> one comma-separated list (in card order).\nconst ids = $input.all().map(item => item.json.id);\nif (ids.length < 2 || ids.some(id => !id)) throw new Error('Missing carousel item ids: ' + JSON.stringify(ids));\nreturn [{ json: { children: ids.join(','), count: ids.length } }];"
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000008",
+      "name": "Wait 20s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1400,
+        300
+      ],
+      "parameters": {
+        "amount": 20
+      },
+      "webhookId": "c4000000-wait-0001"
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000009",
+      "name": "IG Create Carousel",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "media_type",
+              "value": "CAROUSEL"
+            },
+            {
+              "name": "children",
+              "value": "={{ $('Collect Children').first().json.children }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $('Pick Round').first().json.caption }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000010",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1800,
+        300
+      ],
+      "parameters": {
+        "amount": 30
+      },
+      "webhookId": "c4000000-wait-0002"
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000011",
+      "name": "IG Publish",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2000,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $('IG Create Carousel').first().json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000012",
+      "name": "Move to Posted",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2200,
+        300
+      ],
+      "parameters": {
+        "command": "=mkdir -p /files/content/carousels/posted && mv /files/content/carousels/approved/{{ $('Pick Round').first().json.slug }}.* /files/content/carousels/approved/{{ $('Pick Round').first().json.slug }}_* /files/content/carousels/posted/"
+      }
+    },
+    {
+      "id": "c4000000-0000-4000-8000-000000000013",
+      "name": "Schedule Rounds",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        500
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "45-57/3 10 7 10 *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0-6/3 11 7 10 *"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Read Approved JSON": {
+      "main": [
+        [
+          {
+            "node": "Pick Round",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Round": {
+      "main": [
+        [
+          {
+            "node": "Read Card PNG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Card PNG": {
+      "main": [
+        [
+          {
+            "node": "Upload to Cloudinary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Cloudinary": {
+      "main": [
+        [
+          {
+            "node": "IG Create Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Create Item": {
+      "main": [
+        [
+          {
+            "node": "Collect Children",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Children": {
+      "main": [
+        [
+          {
+            "node": "Wait 20s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 20s": {
+      "main": [
+        [
+          {
+            "node": "IG Create Carousel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Create Carousel": {
+      "main": [
+        [
+          {
+            "node": "Wait 30s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30s": {
+      "main": [
+        [
+          {
+            "node": "IG Publish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Publish": {
+      "main": [
+        [
+          {
+            "node": "Move to Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Read Approved JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Rounds": {
+      "main": [
+        [
+          {
+            "node": "Read Approved JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Belgrade"
+  }
+}

@@ -1,0 +1,86 @@
+<title>Reel Shot Chart</title>
+<style>{{FONTS}}</style>
+<style>
+/* Bottom half of the top-10 reel: a player's shot chart, 540x480 CSS px rendered
+   at 2x -> 1080x960. The court is drawn WITHOUT shots: the builder animates the
+   shots on top, so the court box must stay at left 18 / top 64 / 360 x 338.4
+   (7.2 px per foot) -- keep in sync with COURT_BOX in build_top10_reel.py. */
+:root {
+  --team: #0E2240;
+  --accent: #FEC524;
+  --on-accent: #0E2240;
+  --accent-text: #FEC524;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .66);
+  --faint: rgba(255, 255, 255, .14);
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --line: rgba(25, 20, 15, .8);
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--team); color: var(--ink); font-family: var(--font); width: 540px; height: 480px; overflow: hidden; font-variant-numeric: tabular-nums; }
+.slide { position: relative; width: 540px; height: 480px; overflow: hidden;
+  background: radial-gradient(circle at 85% 110%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 55%), var(--team); }
+
+.head { position: absolute; left: 18px; right: 18px; top: 14px; height: 40px; display: flex; align-items: center; justify-content: space-between; }
+.kick { display: grid; gap: 2px; }
+.kick span { font-size: 9px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--accent-text); }
+.kick b { font-family: var(--display); font-weight: 800; font-size: 24px; line-height: 1; text-transform: uppercase; }
+.legend { display: flex; gap: 10px; font-size: 8.5px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #2fd27a; border: 1px solid #0b3d22; margin-right: 4px; vertical-align: -1px; }
+.legend em { font-style: normal; color: #ff5a4f; font-size: 12px; font-weight: 900; margin-right: 3px; }
+
+.court { position: absolute; left: 18px; top: 64px; width: 360px; height: 338.4px; border-radius: 3px; overflow: hidden; box-shadow: 0 0 0 6px #141414, 0 8px 20px rgba(0, 0, 0, .4);
+  background:
+    repeating-linear-gradient(0deg, rgba(140, 95, 40, .045) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(90deg, #ead5ab 0 7px, #e3cb9d 7px 14px, #eed9b0 14px 21px, #e0c798 21px 28px); }
+.court svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.lines { fill: none; stroke: var(--line); stroke-width: .17; }
+.paint { fill: var(--team); }
+.paint-line { fill: none; stroke: rgba(255, 255, 255, .6); stroke-width: .17; }
+.zone3 { fill: rgba(0, 0, 0, .035); }
+
+.side { position: absolute; left: 394px; right: 16px; top: 58px; bottom: 74px; display: flex; flex-direction: column; gap: 6px; }
+.fg { background: var(--accent); color: var(--on-accent); border-radius: 6px; padding: 7px 10px 8px; display: grid; }
+.fg span { font-size: 8.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; opacity: .8; }
+.fg b { font-family: var(--display); font-weight: 800; font-size: 38px; line-height: .95; }
+.fg small { font-size: 10px; font-weight: 800; }
+.zone { background: rgba(255, 255, 255, .07); border: 1px solid var(--faint); border-radius: 6px; padding: 5px 10px 6px; display: grid; grid-template-columns: 1fr auto; align-items: baseline; }
+.zone .k { grid-column: 1 / -1; font-size: 8px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent-text); }
+.zone b { font-family: var(--display); font-weight: 800; font-size: 22px; line-height: 1; }
+.zone span { font-size: 9px; font-weight: 700; color: var(--muted); }
+.zone.none b { color: var(--muted); }
+
+.foot { position: absolute; left: 18px; right: 16px; bottom: 16px; height: 40px; display: grid; grid-template-columns: repeat(6, 1fr); background: rgba(0, 0, 0, .25); border: 1px solid var(--faint); border-radius: 6px; align-items: center; }
+.foot div { display: grid; justify-items: center; }
+.foot div + div { border-left: 1px solid var(--faint); }
+.foot b { font-family: var(--display); font-weight: 800; font-size: 18px; line-height: 1; }
+.foot span { font-size: 7.5px; font-weight: 800; letter-spacing: .08em; color: var(--muted); }
+.foot .fp b { color: var(--accent-text); }
+</style>
+
+<div class="slide">
+  <div class="head">
+    <div class="kick"><span>Shot chart · #{{RANK}}</span><b>{{NAME}}</b></div>
+    <div class="legend"><span><i></i>Made</span><span><em>✕</em>Missed</span></div>
+  </div>
+  <div class="court">
+    <svg viewBox="0 0 50 47" preserveAspectRatio="none" aria-hidden="true">
+      <path class="zone3" d="M0 0 H3 V14.2 A23.75 23.75 0 0 0 47 14.2 V0 H50 V47 H0 Z"/>
+      <rect class="paint" x="17" y="0" width="16" height="19"/>
+      <path class="paint-line" d="M17 0 V19 H33 V0"/>
+      <path class="lines" d="M19 19 A6 6 0 0 0 31 19"/>
+      <path class="paint-line" d="M19 19 A6 6 0 0 1 31 19" stroke-dasharray=".9 .7"/>
+      <path class="lines" d="M3 0 V14.2 A23.75 23.75 0 0 0 47 14.2 V0"/>
+      <path class="paint-line" d="M21 5.25 A4 4 0 0 0 29 5.25"/>
+      <line class="paint-line" x1="22" y1="4" x2="28" y2="4" stroke-width=".3"/>
+      <circle class="paint-line" cx="25" cy="5.25" r=".75"/>
+      <path class="lines" d="M19 47 A6 6 0 0 1 31 47"/>
+      <rect class="lines" x=".08" y=".08" width="49.84" height="46.84"/>
+    </svg>
+  </div>
+  <div class="side">{{SIDE}}</div>
+  <div class="foot">{{FOOT}}</div>
+</div>

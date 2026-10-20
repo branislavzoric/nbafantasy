@@ -1,0 +1,71 @@
+<title>Top 10 Outro</title>
+<style>{{FONTS}}</style>
+<style>
+/* Closing slide of the top-10 reel: 540x960 CSS px rendered at 2x -> 1080x1920.
+   The full top 10 as a stat table (MIN, FPTS, PTS, REB, AST, STL, BLK). Rows slide in
+   with CSS animations that are paused and seeked to window.FRAME_T (seconds). Each row
+   brings its team colours as --tc / --ta / --tt. */
+:root {
+  --bg: #0d1219;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .62);
+  --faint: rgba(255, 255, 255, .1);
+  --gold: #f5c542;
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --t: 99;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font-family: var(--font); width: 540px; height: 960px; overflow: hidden; font-variant-numeric: tabular-nums; }
+.page { position: relative; width: 540px; height: 960px; padding: 80px 14px 44px; display: flex; flex-direction: column; gap: 16px;
+  background:
+    radial-gradient(ellipse 80% 35% at 50% 0%, rgba(245, 197, 66, .16), transparent 70%),
+    radial-gradient(ellipse 70% 30% at 50% 100%, rgba(80, 120, 255, .1), transparent 70%),
+    var(--bg); }
+
+.in { animation: rise .5s cubic-bezier(.2, .8, .2, 1) both paused; animation-delay: calc((var(--d, 0) - var(--t)) * 1s); }
+.slide { animation: slide .45s cubic-bezier(.2, .8, .2, 1) both paused; animation-delay: calc((var(--d, 0) - var(--t)) * 1s); }
+@keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+@keyframes slide { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
+
+.head { text-align: center; display: grid; gap: 6px; }
+.kicker { font-size: 10.5px; font-weight: 800; letter-spacing: .22em; text-transform: uppercase; color: var(--gold); }
+h1 { margin: 0; font-family: var(--display); font-weight: 800; font-size: 46px; line-height: .9; text-transform: uppercase; }
+h1 span { color: var(--gold); }
+.games { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; }
+.games span { font-size: 9px; font-weight: 700; color: var(--muted); border: 1px solid var(--faint); border-radius: 999px; padding: 3px 9px; }
+.games b { color: var(--ink); }
+
+.board { display: grid; gap: 5px; }
+.r { display: grid; grid-template-columns: 26px 34px 1fr 30px 44px repeat(5, 30px); align-items: center; gap: 0 2px; height: 58px; padding: 0 6px 0 4px;
+  border-radius: 8px; background: linear-gradient(90deg, color-mix(in srgb, var(--tc) 80%, transparent), rgba(255, 255, 255, .04) 70%);
+  border-left: 3px solid var(--ta); }
+.r.th { height: 22px; background: none; border-left-color: transparent; }
+.r.th span { font-size: 8px; font-weight: 800; letter-spacing: .08em; color: var(--muted); text-align: center; }
+.r.th span.n { text-align: left; padding-left: 8px; }
+.rk { font-family: var(--display); font-weight: 800; font-size: 22px; text-align: center; }
+.r.top .rk { color: var(--gold); }
+.face { width: 34px; height: 34px; border-radius: 50%; overflow: hidden; position: relative; background: rgba(255, 255, 255, .14); }
+.face img { position: absolute; left: 50%; top: 3px; height: 40px; transform: translateX(-50%); }
+.face .ini { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 14px; }
+.who { padding-left: 8px; min-width: 0; }
+.who b { display: block; font-family: var(--display); font-weight: 800; font-size: 16px; text-transform: uppercase; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.who small { display: flex; align-items: center; gap: 4px; font-size: 8.5px; font-weight: 700; color: var(--muted); margin-top: 3px; }
+.who small img { width: 12px; height: 12px; object-fit: contain; }
+.v { font-family: var(--display); font-weight: 700; font-size: 17px; text-align: center; color: rgba(255, 255, 255, .86); }
+.v.z { color: rgba(255, 255, 255, .3); }
+.v.fp { font-weight: 800; font-size: 19px; color: var(--gold); }
+.v.hi { font-weight: 800; color: #fff; }
+
+.foot { margin-top: auto; text-align: center; font-size: 9px; font-weight: 700; letter-spacing: .06em; color: var(--muted); }
+.foot b { color: var(--ink); }
+</style>
+
+<div class="page">
+  {{BODY}}
+</div>
+<script>
+const m = location.hash.match(/t=([\d.]+)/);
+document.documentElement.style.setProperty("--t", window.FRAME_T ?? (m ? parseFloat(m[1]) : 99));
+</script>

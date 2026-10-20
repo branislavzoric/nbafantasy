@@ -1,0 +1,80 @@
+<title>Top 10 Poster</title>
+<style>{{FONTS}}</style>
+<style>
+/* Poster / thumbnail of the top-10 reel: 540x960 CSS px rendered at 2x -> 1080x1920.
+   The night's top 3 as cut-out photos (#2 left, #1 centre, #3 right) under a big title.
+   Everything important sits inside the 3:4 grid crop (y 120-840). The #1 player's team
+   colours come in as --tc (dark) / --ta (accent) / --tt (accent readable on dark);
+   each player brings his own as --pc / --pa. */
+:root {
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .7);
+  --gold: #f5c542;
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #0b0d12; color: var(--ink); font-family: var(--font); width: 540px; height: 960px; overflow: hidden; font-variant-numeric: tabular-nums; }
+.page { position: relative; width: 540px; height: 960px; overflow: hidden;
+  background:
+    radial-gradient(ellipse 75% 45% at 50% 52%, color-mix(in srgb, var(--ta) 55%, transparent), transparent 72%),
+    linear-gradient(180deg, #07080b 0%, var(--tc) 38%, var(--tc) 62%, #07080b 100%); }
+/* diagonal light streaks */
+.page::before { content: ""; position: absolute; inset: -200px; opacity: .16;
+  background: repeating-linear-gradient(115deg, transparent 0 46px, rgba(255, 255, 255, .5) 46px 48px, transparent 48px 120px); }
+/* film grain */
+.page::after { content: ""; position: absolute; inset: 0; opacity: .1; mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+/* ---- title ---- */
+.head { position: absolute; top: 122px; left: 0; right: 0; text-align: center; z-index: 5; }
+.kicker { display: inline-block; font-size: 10.5px; font-weight: 800; letter-spacing: .24em; text-transform: uppercase;
+  color: #111; background: var(--gold); padding: 4px 10px 3px; border-radius: 3px; }
+h1 { margin: 8px 0 0; font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: .8; }
+h1 small { display: block; font-size: 30px; letter-spacing: .14em; }
+h1 b { display: block; font-size: 112px; letter-spacing: -.01em; color: var(--gold);
+  text-shadow: 0 6px 0 rgba(0, 0, 0, .35), 0 0 40px rgba(245, 197, 66, .35); }
+
+/* ---- the three players ---- */
+.stage { position: absolute; left: 0; right: 0; top: 282px; height: 440px; }
+.fig { position: absolute; bottom: 0; display: flex; justify-content: center; }
+.fig .num { position: absolute; font-family: var(--display); font-weight: 800; line-height: 1; color: transparent;
+  -webkit-text-stroke: 2px color-mix(in srgb, var(--pa) 85%, white); opacity: .55; }
+.fig .cut { position: relative; overflow: hidden; width: 100%;
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%); mask-image: linear-gradient(180deg, #000 78%, transparent 100%); }
+.fig .cut img { display: block; width: 100%; filter: contrast(1.05) saturate(1.08); }
+.fig.r1 { left: 120px; width: 300px; z-index: 3; }
+.fig.r2 { left: -40px; width: 250px; z-index: 2; bottom: 14px; }
+.fig.r3 { right: -30px; width: 250px; z-index: 2; bottom: 14px; }
+.fig.r1 .num { font-size: 260px; top: -60px; left: 50%; transform: translateX(-50%); }
+.fig.r2 .num { font-size: 200px; top: -40px; left: 30px; }
+.fig.r3 .num { font-size: 190px; top: -40px; right: 40px; }
+.fig .ini { width: 170px; height: 170px; border-radius: 50%; display: grid; place-items: center; background: rgba(255, 255, 255, .12);
+  font-family: var(--display); font-weight: 800; font-size: 60px; margin-bottom: 60px; }
+
+/* ---- name plates ---- */
+.plates { position: absolute; left: 12px; right: 12px; top: 700px; display: grid; grid-template-columns: 1fr 1.15fr 1fr; gap: 8px; z-index: 6; align-items: end; }
+.plate { border-radius: 8px; padding: 7px 8px 8px; text-align: center; background: rgba(8, 9, 13, .78);
+  border: 1px solid rgba(255, 255, 255, .14); box-shadow: 0 8px 24px rgba(0, 0, 0, .45); backdrop-filter: blur(6px); }
+.plate.r1 { border-color: var(--gold); padding-top: 9px; }
+.plate .rk { display: inline-block; font-family: var(--display); font-weight: 800; font-size: 12px; letter-spacing: .1em;
+  color: #111; background: var(--pa); padding: 1px 7px; border-radius: 3px; }
+.plate.r1 .rk { background: var(--gold); }
+.plate .nm { font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: .92; margin-top: 5px; }
+.plate .nm small { display: block; font-size: 11px; letter-spacing: .08em; color: var(--muted); }
+.plate .nm b { display: block; font-size: 22px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.plate.r1 .nm b { font-size: 25px; }
+.plate .fp { font-family: var(--display); font-weight: 800; font-size: 30px; line-height: 1; margin-top: 3px; color: var(--gold); }
+.plate.r1 .fp { font-size: 36px; }
+.plate .fp small { font-family: var(--font); font-size: 8px; letter-spacing: .12em; margin-left: 3px; color: var(--muted); }
+.plate .ln { font-size: 8.5px; font-weight: 700; color: var(--muted); margin-top: 3px; white-space: nowrap; }
+
+.foot { position: absolute; left: 0; right: 0; top: 838px; text-align: center; z-index: 6; font-size: 9.5px; font-weight: 800;
+  letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.foot b { color: var(--ink); }
+</style>
+
+<div class="page" style="{{VARS}}">
+  {{BODY}}
+</div>

@@ -1,0 +1,405 @@
+{
+  "id": "nbaReelPostWf001",
+  "name": "NBA Fantasy - Post Reel",
+  "active": false,
+  "nodes": [
+    {
+      "id": "c3000000-0000-4000-8000-000000000001",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        300
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000002",
+      "name": "Read Approved JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        200,
+        300
+      ],
+      "parameters": {
+        "fileSelector": "/files/content/reels/approved/*.json",
+        "options": {}
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000003",
+      "name": "Pick Reel",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        400,
+        300
+      ],
+      "parameters": {
+        "jsCode": "// Oldest night first, then by rank. Files are named <date>_<rank>_<player>.json.\nconst all = $input.all();\nif (!all.length) return [];\nconst order = all\n  .map((item, i) => { const [date, rank] = item.binary.data.fileName.split('_'); return { i, date, rank: Number(rank) }; })\n  .sort((a, b) => a.date.localeCompare(b.date) || a.rank - b.rank);\nconst reel = JSON.parse((await this.helpers.getBinaryDataBuffer(order[0].i, 'data')).toString('utf8'));\nreturn [{ json: { ...reel, caption: reel.caption.slice(0, 2200) } }];"
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000004",
+      "name": "Read Reel Video",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        600,
+        300
+      ],
+      "parameters": {
+        "fileSelector": "=/files/content/reels/approved/{{ $json.video }}",
+        "options": {}
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000005",
+      "name": "Upload Video to Cloudinary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        800,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/biah2b8d/video/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "upload_preset",
+              "value": "nbafantasy"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000006",
+      "name": "IG Create Reel Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1000,
+        300
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "media_type",
+              "value": "REELS"
+            },
+            {
+              "name": "video_url",
+              "value": "={{ $json.secure_url }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $('Pick Reel').first().json.caption }}"
+            },
+            {
+              "name": "share_to_feed",
+              "value": "true"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000007",
+      "name": "Wait 10s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        300
+      ],
+      "parameters": {
+        "amount": 10,
+        "unit": "seconds"
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000008",
+      "name": "Check Processing",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1400,
+        300
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://graph.instagram.com/v23.0/{{ $('IG Create Reel Container').first().json.id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "fields",
+              "value": "status_code,status"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000009",
+      "name": "Finished?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1600,
+        300
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "d1f0c0de-0000-4000-8000-000000000001",
+              "leftValue": "={{ $json.status_code }}",
+              "rightValue": "FINISHED",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000010",
+      "name": "IG Publish",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1800,
+        200
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $('IG Create Reel Container').first().json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000011",
+      "name": "Move to Posted",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        2000,
+        200
+      ],
+      "parameters": {
+        "command": "=mkdir -p /files/content/reels/posted && mv /files/content/reels/approved/{{ $('Pick Reel').first().json.slug }}.* /files/content/reels/posted/"
+      }
+    },
+    {
+      "id": "c3000000-0000-4000-8000-000000000012",
+      "name": "Still Processing",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1800,
+        420
+      ],
+      "parameters": {
+        "jsCode": "// Instagram is still processing the video: check again, unless it failed or is taking too long.\nconst s = $input.first().json;\nif (s.status_code === 'ERROR' || s.status_code === 'EXPIRED') {\n  throw new Error(`Instagram could not process the reel: ${s.status_code} ${s.status || ''}`);\n}\nif ($runIndex >= 30) throw new Error(`Reel still not processed after ~5 minutes (${s.status_code})`);\nreturn [{ json: s }];"
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [
+        [
+          {
+            "node": "Read Approved JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Approved JSON": {
+      "main": [
+        [
+          {
+            "node": "Pick Reel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pick Reel": {
+      "main": [
+        [
+          {
+            "node": "Read Reel Video",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Reel Video": {
+      "main": [
+        [
+          {
+            "node": "Upload Video to Cloudinary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload Video to Cloudinary": {
+      "main": [
+        [
+          {
+            "node": "IG Create Reel Container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Create Reel Container": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 10s": {
+      "main": [
+        [
+          {
+            "node": "Check Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Processing": {
+      "main": [
+        [
+          {
+            "node": "Finished?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finished?": {
+      "main": [
+        [
+          {
+            "node": "IG Publish",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Still Processing",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Publish": {
+      "main": [
+        [
+          {
+            "node": "Move to Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Still Processing": {
+      "main": [
+        [
+          {
+            "node": "Wait 10s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "pinData": {}
+}

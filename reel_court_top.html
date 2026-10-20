@@ -1,0 +1,78 @@
+<title>{{TEAM_NAME}} Reel Court</title>
+<style>{{FONTS}}</style>
+<style>
+/* Top half of the team top-6 reel: 540x480 CSS px rendered at 2x -> 1080x960.
+   Half court to scale (50 x 47 ft at 7.6 px/ft), basket at the top. The featured
+   player's token is marked .on and the others .dim (none on the intro state). */
+:root {
+  --team: #0E2240;
+  --accent: #FEC524;
+  --on-accent: #0E2240;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .7);
+  --faint: rgba(255, 255, 255, .16);
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --line: rgba(25, 20, 15, .82);
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: #141414; color: var(--ink); font-family: var(--font); width: 540px; height: 480px; overflow: hidden; font-variant-numeric: tabular-nums; }
+.top { position: relative; width: 540px; height: 480px; }
+
+.team-name { position: absolute; left: 0; right: 0; top: 7px; text-align: center; font-family: var(--display); font-weight: 800; font-size: 31px; letter-spacing: .06em; text-transform: uppercase; color: var(--accent-text); line-height: 1; }
+.sub { position: absolute; left: 0; right: 0; top: 39px; text-align: center; font-size: 8.5px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+.court { position: absolute; left: 80px; top: 50px; width: 380px; height: 357px; overflow: hidden;
+  background:
+    repeating-linear-gradient(0deg, rgba(140, 95, 40, .045) 0 2px, transparent 2px 9px),
+    repeating-linear-gradient(90deg, #ead5ab 0 9px, #e3cb9d 9px 18px, #eed9b0 18px 27px, #e0c798 27px 36px); }
+.court svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.court .lines { fill: none; stroke: var(--line); stroke-width: .17; }
+.court .paint { fill: var(--team); }
+.court .paint-line { fill: none; stroke: rgba(255, 255, 255, .55); stroke-width: .17; }
+.court .center { fill: #f4f0e6; stroke: var(--accent); stroke-width: .45; }
+
+.token { position: absolute; width: 132px; height: 50px; display: flex; align-items: center; gap: 5px; padding: 4px 8px 4px 4px;
+  background: color-mix(in srgb, var(--team) 95%, transparent); border-radius: 7px; border: 1.5px solid var(--faint);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .35); transform-origin: center; }
+.token.on { border: 2.5px solid var(--accent); transform: scale(1.12); z-index: 5; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 35%, transparent), 0 6px 16px rgba(0, 0, 0, .5); }
+.token.dim { opacity: .55; }
+.face { flex: none; width: 34px; height: 34px; border-radius: 50%; overflow: hidden; background: var(--accent); position: relative; }
+.face img { position: absolute; left: 50%; top: 2px; height: 40px; transform: translateX(-50%); }
+.info { min-width: 0; flex: 1; display: grid; gap: 1px; }
+.pos { display: flex; align-items: center; gap: 3px; font-size: 8px; font-weight: 800; letter-spacing: .06em; color: var(--accent-text); }
+.pos .inj { background: #c8263c; color: #fff; padding: 0 3px; border-radius: 2px; letter-spacing: .02em; }
+.name { font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: 1; white-space: nowrap; font-size: 14px; }
+.name.long { font-size: 12px; } .name.xlong { font-size: 10.5px; }
+.stats { display: flex; gap: 6px; font-size: 6.5px; font-weight: 800; letter-spacing: .05em; color: var(--muted); white-space: nowrap; }
+.stats b { font-size: 10px; letter-spacing: 0; margin-right: 1px; color: var(--ink); }
+.stats b.fp { color: var(--accent-text); }
+
+.sixth-label { position: absolute; top: 437px; left: 128px; font-size: 9px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--accent-text); }
+.divider { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--accent); }
+</style>
+
+<div class="top">
+  <div class="team-name">{{TEAM_NAME}}</div>
+  <div class="sub">Projected top 6 · 2026-27</div>
+  <div class="court">
+    <svg viewBox="0 0 50 47" preserveAspectRatio="none" aria-hidden="true">
+      <rect class="paint" x="17" y="0" width="16" height="19"/>
+      <path class="paint-line" d="M17 0 V19 H33 V0"/>
+      <path class="lines" d="M19 19 A6 6 0 0 0 31 19"/>
+      <path class="paint-line" d="M19 19 A6 6 0 0 1 31 19" stroke-dasharray=".9 .7"/>
+      <path class="lines" d="M3 0 V14 A23.75 23.75 0 0 0 47 14 V0"/>
+      <line class="paint-line" x1="22" y1="4" x2="28" y2="4"/>
+      <circle class="paint-line" cx="25" cy="5.25" r=".75"/>
+      <path class="paint-line" d="M21 5.25 A4 4 0 0 0 29 5.25"/>
+      <path class="center" d="M19 47 A6 6 0 0 1 31 47 Z"/>
+      <rect class="lines" x=".08" y=".08" width="49.84" height="46.84"/>
+    </svg>
+    {{COURT_TOKENS}}
+  </div>
+  <div class="sixth-label">6th man</div>
+  {{SIXTH_TOKEN}}
+  <div class="divider"></div>
+</div>

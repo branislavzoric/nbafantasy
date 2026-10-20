@@ -1,0 +1,287 @@
+{
+  "id": "nightlyTop10Wf01",
+  "name": "NBA Fantasy - Nightly Top 10",
+  "active": false,
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "40-58/2 12 6 10 *"
+            }
+          ]
+        }
+      },
+      "id": "b2000000-0000-4000-8000-000000000001",
+      "name": "Schedule Top 10",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        4,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "/files/content/nightly/approved/*.json",
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000002",
+      "name": "Read Approved JSON",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nightly top 10: post the oldest night first, and within a night count down\n// from #10 to #1. Files are named <date>_<rank>_<player>.json.\nconst all = $input.all();\nif (!all.length) return [];\nconst order = all\n  .map((item, i) => {\n    const name = item.binary.data.fileName;\n    const [date, rank] = name.split('_');\n    return { i, date, rank: Number(rank) };\n  })\n  .sort((a, b) => a.date.localeCompare(b.date) || b.rank - a.rank);\nconst idx = order[0].i;\nconst card = JSON.parse((await this.helpers.getBinaryDataBuffer(idx, 'data')).toString('utf8'));\nreturn [{ json: { ...card, caption: card.caption.slice(0, 2200) } }];"
+      },
+      "id": "b2000000-0000-4000-8000-000000000003",
+      "name": "Build Caption",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "fileSelector": "=/files/content/nightly/approved/{{ $json.image }}",
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000004",
+      "name": "Read Card PNG",
+      "type": "n8n-nodes-base.readWriteFile",
+      "typeVersion": 1,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.cloudinary.com/v1_1/biah2b8d/image/upload",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "upload_preset",
+              "value": "nbafantasy"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000005",
+      "name": "Upload to Cloudinary",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "image_url",
+              "value": "={{ $json.secure_url.replace(/\\.png$/, '.jpg') }}"
+            },
+            {
+              "name": "caption",
+              "value": "={{ $('Build Caption').first().json.caption }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000006",
+      "name": "IG Create Container",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1104,
+        0
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 30
+      },
+      "id": "b2000000-0000-4000-8000-000000000007",
+      "name": "Wait 30s",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1328,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://graph.instagram.com/v23.0/17841427355256599/media_publish",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpQueryAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "creation_id",
+              "value": "={{ $('IG Create Container').first().json.id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "b2000000-0000-4000-8000-000000000008",
+      "name": "IG Publish",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1552,
+        0
+      ],
+      "credentials": {
+        "httpQueryAuth": {
+          "id": "YVsx47E5FOuJ68i8",
+          "name": "Instagram token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "command": "=mkdir -p /files/content/nightly/posted && mv /files/content/nightly/approved/{{ $('Build Caption').first().json.slug }}.* /files/content/nightly/posted/"
+      },
+      "id": "b2000000-0000-4000-8000-000000000009",
+      "name": "Move to Posted",
+      "type": "n8n-nodes-base.executeCommand",
+      "typeVersion": 1,
+      "position": [
+        1760,
+        0
+      ]
+    }
+  ],
+  "connections": {
+    "Read Approved JSON": {
+      "main": [
+        [
+          {
+            "node": "Build Caption",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Caption": {
+      "main": [
+        [
+          {
+            "node": "Read Card PNG",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read Card PNG": {
+      "main": [
+        [
+          {
+            "node": "Upload to Cloudinary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload to Cloudinary": {
+      "main": [
+        [
+          {
+            "node": "IG Create Container",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Create Container": {
+      "main": [
+        [
+          {
+            "node": "Wait 30s",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 30s": {
+      "main": [
+        [
+          {
+            "node": "IG Publish",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IG Publish": {
+      "main": [
+        [
+          {
+            "node": "Move to Posted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Schedule Top 10": {
+      "main": [
+        [
+          {
+            "node": "Read Approved JSON",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "pinData": {}
+}

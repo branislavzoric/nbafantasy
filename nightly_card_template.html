@@ -1,0 +1,92 @@
+<title>{{NAME}} Nightly Card</title>
+<style>{{FONTS}}</style>
+<style>
+/* Nightly top-10 card: one 540x675 card (rendered at 2x -> 1080x1350). Team colours come in as --team / --accent. */
+:root {
+  --team: #0E2240;
+  --accent: #FEC524;
+  --on-accent: #0E2240;
+  --ink: #ffffff;
+  --muted: rgba(255, 255, 255, .66);
+  --faint: rgba(255, 255, 255, .14);
+  --strip: rgba(255, 255, 255, .07);
+  --font: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  {{TEAM_VARS}}
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--team); color: var(--ink); font-family: var(--font); width: 540px; height: 675px; overflow: hidden; }
+.card { width: 540px; height: 675px; display: flex; flex-direction: column; font-variant-numeric: tabular-nums; }
+
+.hero { display: grid; grid-template-columns: 1fr 200px; min-height: 340px; }
+.left { padding: 18px 16px 14px 20px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.tags { display: flex; align-items: center; gap: 10px; font-size: 10.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.rank { display: flex; align-items: baseline; gap: 5px; white-space: nowrap; background: var(--accent); color: var(--on-accent); padding: 2px 9px 1px; border-radius: 3px; }
+.rank b { font-family: var(--display); font-size: 26px; font-weight: 800; line-height: 1; letter-spacing: 0; }
+.tag { white-space: nowrap; background: var(--accent); color: var(--on-accent); padding: 3px 7px; border-radius: 3px; }
+.meta { color: var(--muted); }
+.inj { background: #c8263c; color: #fff; padding: 2px 5px; border-radius: 3px; }
+h1 { margin: 0; font-family: var(--display); font-weight: 800; text-transform: uppercase; line-height: .95; letter-spacing: .005em; overflow-wrap: anywhere; }
+h1 .hl { color: var(--accent-text); }
+h1 .nw { white-space: nowrap; }
+h1.s1 { font-size: 42px; } h1.s2 { font-size: 36px; } h1.s3 { font-size: 31px; }
+.name { font-size: 13px; font-weight: 700; color: var(--muted); margin-top: -2px; }
+.big { display: grid; grid-template-columns: repeat(3, 84px); margin-top: auto; }
+.big div { display: grid; }
+.big b { font-family: var(--display); font-size: 40px; font-weight: 700; line-height: 1; }
+.big span { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: var(--muted); margin-top: 3px; }
+
+.right { background: var(--accent); position: relative; overflow: hidden; }
+.jersey { position: absolute; top: 78px; left: 0; right: 0; text-align: center; font-family: var(--display); font-weight: 800; font-size: 170px; line-height: 1; color: var(--on-accent); opacity: .14; }
+.fp { position: absolute; top: 16px; left: 14px; background: var(--team); padding: 7px 10px 6px; border-radius: 3px; z-index: 2; }
+.fp b { display: block; font-family: var(--display); font-size: 30px; font-weight: 800; line-height: 1; color: var(--accent-text); }
+.fp span { font-size: 8.5px; font-weight: 800; letter-spacing: .1em; color: var(--muted); }
+.photo { position: absolute; bottom: 0; left: 50%; transform: translateX(-50%); height: 235px; width: auto; z-index: 1; }
+.nophoto { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); font-family: var(--display); font-weight: 800; font-size: 72px; color: var(--on-accent); opacity: .5; }
+
+.outlook { flex: 1; padding: 14px 20px 12px; border-top: 1px solid var(--faint); display: flex; flex-direction: column; gap: 6px; justify-content: center; min-height: 0; }
+.label { font-size: 10px; font-weight: 800; letter-spacing: .1em; color: var(--accent-text); text-transform: uppercase; }
+.outlook p { margin: 0; line-height: 1.45; color: rgba(255, 255, 255, .88); }
+.outlook p.t0 { font-size: 18px; line-height: 1.5; } .outlook p.t1 { font-size: 16.5px; } .outlook p.t2 { font-size: 15.5px; } .outlook p.t3 { font-size: 14.5px; line-height: 1.42; }
+
+.strip { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--strip); border-top: 1px solid var(--faint); border-bottom: 1px solid var(--faint); }
+.strip div { display: grid; justify-items: center; padding: 10px 0 8px; }
+.strip div + div { border-left: 1px solid var(--faint); }
+.strip b { font-family: var(--display); font-size: 22px; font-weight: 700; line-height: 1; }
+.strip span { font-size: 9px; font-weight: 800; letter-spacing: .08em; color: var(--muted); margin-top: 4px; }
+
+.badges { display: flex; flex-wrap: wrap; gap: 6px; padding: 11px 20px; }
+.badges span { font-size: 10.5px; font-weight: 700; padding: 3px 9px; border-radius: 999px; border: 1px solid var(--accent-text); color: var(--accent-text); }
+.badges span.win { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.badges span.main { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+
+footer span:last-child { white-space: nowrap; }
+footer { display: flex; justify-content: space-between; gap: 12px; padding: 8px 20px 10px; font-size: 9px; color: var(--muted); border-top: 1px solid var(--faint); }
+</style>
+
+<div class="card">
+  <div class="hero">
+    <div class="left">
+      <div class="tags"><span class="rank"><b>#{{RANK}}</b>Last Night</span><span class="meta">{{GAME_LABEL}}</span></div>
+      <div class="tags"><span class="meta">{{META}}</span></div>
+      <h1 class="{{HEADLINE_SIZE}}">{{HEADLINE}}</h1>
+      <div class="name">{{NAME}}</div>
+      <div class="big">{{BIG}}</div>
+    </div>
+    <div class="right">
+      <div class="jersey">{{JERSEY}}</div>
+      <div class="fp"><b>{{FPTS}}</b><span>FANTASY PTS</span></div>
+      {{PHOTO}}
+    </div>
+  </div>
+
+  <div class="outlook">
+    <div class="label">{{SUMMARY_LABEL}}</div>
+    <p class="{{SUMMARY_SIZE}}">{{SUMMARY}}</p>
+  </div>
+
+  <div class="strip">{{STRIP}}</div>
+  <div class="badges">{{BADGES}}</div>
+  <footer><span>{{SOURCE}}</span><span>{{DATE}}</span></footer>
+</div>

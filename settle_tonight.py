@@ -247,7 +247,12 @@ def settle_any(b, box, scores):
     if src == "NBA props":
         return settle_nba_prop(b)
     if src == "EL props":
-        return settle_prop(b, box)
+        out = settle_prop(b, box)
+        if out["status"] == "open" and b.get("kickoff"):   # NBA props scraped in an EL pass keep the EL label
+            nba = settle_nba_prop(b)
+            if nba["status"] != "open":
+                return nba
+        return out
     if b["source"] == "EL lines":
         return settle_line(b, box)
     return settle_football(b, scores)
@@ -277,17 +282,22 @@ def settle_arb(a, box, stake):
     over, under = a["legs"]
     so = round(stake * over["stake_pct"] / 100 / 10) * 10
     su = stake - so
-    if a.get("source", "NBA props") == "NBA props":    # NBA card arbs carry no source and no kickoff
+    if a.get("source", "NBA props") == "NBA props" or a.get("_day"):   # NBA game (props arbs may say "EL props")
         leg = (nba_prop_leg(a["match"], player, market, "Over", line, a["_day"]) if a.get("_day")
                else {"status": "open", "note": "game not on the board"})
     else:
         leg = sb.settle_leg({"game": a["match"], "player": player, "market": market, "side": "Over", "line": line}, box)
+    lu = a.get("line_under", line)                    # a middle: Over line + Under line_under, both can win
     if leg["status"] in ("void", "open"):
         ret, side = None, leg["status"]
+    elif lu > line and leg.get("stat") is not None:
+        o_won, u_won = leg["stat"] > line, leg["stat"] < lu
+        side = "both" if o_won and u_won else "over" if o_won else "under"
+        ret = so * over["odds"] * o_won + su * under["odds"] * u_won
     else:
         side = "over" if leg["status"] == "won" else "under"
         ret = so * over["odds"] if side == "over" else su * under["odds"]
-    return {"player": player, "market": market, "line": line, "match": a["match"],
+    return {"player": player, "market": market, "line": line, "line_under": lu, "match": a["match"],
             "over_odds": over["odds"], "over_book": over["book"], "under_odds": under["odds"],
             "under_book": under["book"], "profit_pct": a["profit_pct"], "stake_over": so, "stake_under": su,
             "status": side, "stat": leg.get("stat"),
@@ -301,11 +311,11 @@ def settle(day, stake, min_edge):
     os.makedirs(folder, exist_ok=True)
     box = sb.load_box(day, folder)
     scores = football_scores(day, folder)
-    picks = [with_profit(settle_any(p, box, scores)) for p in data["picks"]]
-    lines = [with_profit(settle_line(p, box)) for p in data["per_source"]["EL lines"]]
-    football = [with_profit(settle_football(p, scores)) for lg in data["football_picks"].values()
+    picks = [with_profit(settle_any(p, box, scores)) for p in data.get("picks", [])]
+    lines = [with_profit(settle_line(p, box)) for p in data.get("per_source", {}).get("EL lines", [])]
+    football = [with_profit(settle_football(p, scores)) for lg in data.get("football_picks", {}).values()
                 for p in lg if p["edge_pct"] >= min_edge]
-    slips = [settle_slip(data["slips"][k], box, scores, int(k)) for k in sorted(data["slips"], key=int)
+    slips = [settle_slip(data["slips"][k], box, scores, int(k)) for k in sorted(data.get("slips", {}), key=int)
              if data["slips"][k]]
     # NBA games ("MM-DD HH:MM" Belgrade time, home, away) -> US Eastern date, for the NBA prop arbitrages
     nba_days = {f"{h} vs {a}": nba_day_of(f"{day[:4]}-{k}") for k, h, a in data.get("nba_games", [])}
@@ -314,6 +324,10 @@ def settle(day, stake, min_edge):
         picks = [with_profit(settle_any(p, box, scores)) for p in basket["singles"]]
         slips = [{**settle_slip(t, box, scores, len(t["legs"])), "name": t["name"], "label": t["label"]}
                  for t in basket["tickets"]]
+        # drawing-board ticket sets (build_board_tickets.py): 15 player-prop + 5 game-line tickets
+        for group in ("prop_tickets", "line_tickets", "analysed_tickets"):   # analysed = hand-picked, with notes
+            slips += [{**settle_slip(t, box, scores, len(t["legs"])), "name": t["name"], "label": t["label"],
+                       "group": group} for t in basket.get(group, [])]
     res = {"date": day, "settled": dt.datetime.now().strftime("%Y-%m-%d %H:%M"), "stake": stake,
            "games": [f'{g["local"]} {g["score"]} {g["road"]}' for g in box.values()],
            "football_scores": scores, "picks": picks, "lines": lines, "football": football, "slips": slips,

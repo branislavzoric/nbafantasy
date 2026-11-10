@@ -62,12 +62,22 @@ def game_finder(games):
     for g in games:
         by[(g["home"], g["kickoff"])] = by[(g["away"], g["kickoff"])] = g
 
+    def near(a, b):   # Admiral's NBA player events start 10 min after the game event
+        try:
+            a, b = (x if isinstance(x, dt.datetime) else dt.datetime.fromisoformat(str(x)) for x in (a, b))
+            return abs((a - b).total_seconds()) <= 3600
+        except (TypeError, ValueError):
+            return a == b
+
     def find(team, kickoff):
         if (team, kickoff) in by:
             return by[(team, kickoff)]
-        hits = [g for g in games if g["kickoff"] == kickoff
-                and _words(team) & (_words(g["home"]) | _words(g["away"]))]
-        return hits[0] if len(hits) == 1 else None
+        for when in (lambda k: k == kickoff, lambda k: near(k, kickoff)):
+            hits = [g for g in games if when(g["kickoff"])
+                    and _words(team) & (_words(g["home"]) | _words(g["away"]))]
+            if len(hits) == 1:
+                return hits[0]
+        return None
     return find
 
 
@@ -174,7 +184,9 @@ SELECT g.league_name, g.home, g.away, g.kickoff, p.*, r.scraped_at
 FROM odds.player_props p
 JOIN odds.scrape_runs r ON r.run_id = p.run_id
 LEFT JOIN odds.games g ON g.source = p.source AND g.game_id = p.game_id
-WHERE p.run_id = (SELECT max(r2.run_id) FROM odds.scrape_runs r2 WHERE r2.source = p.source);
+-- latest run per book AND league, so a NBA props run doesn't hide that day's EuroLeague run
+WHERE p.run_id = (SELECT max(r2.run_id) FROM odds.scrape_runs r2
+                  WHERE r2.source = p.source AND r2.league_id = r.league_id);
 """
 
 

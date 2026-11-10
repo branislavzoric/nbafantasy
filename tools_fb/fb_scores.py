@@ -9,7 +9,9 @@ sys.stdout.reconfigure(encoding="utf-8")
 os.chdir(r"C:\Users\Zoric\nbafantasy")
 day = sys.argv[1]
 LG = {"Premier League": "eng.1", "LaLiga": "esp.1", "Serie A": "ita.1", "Bundesliga": "ger.1",
-      "Ligue 1": "fra.1", "Eredivisie": "ned.1", "Primeira Liga": "por.1"}
+      "Ligue 1": "fra.1", "Eredivisie": "ned.1", "Primeira Liga": "por.1", "Champions League": "uefa.champions",
+      "Europa League": "uefa.europa", "Conference League": "uefa.europa.conf", "Championship": "eng.2",
+      "League One": "eng.3"}
 out = []
 for league, code in LG.items():
     sb = requests.get(f"https://site.api.espn.com/apis/site/v2/sports/soccer/{code}/scoreboard",

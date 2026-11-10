@@ -168,7 +168,7 @@ def unify_props(lines, kick, el_games):
                     "bet": f"{r.player} {side} {float(r.line):g} {r.market}" + (" (N+ line)" if r.via_milestone else ""),
                     "key": (r.game, r.player, r.market, r.side, float(r.line)), "book": r.book,
                     "odds": float(r.odds), "prob": round(1 / float(r.fair_odds), 4), "fair_odds": float(r.fair_odds),
-                    "edge_pct": float(r.edge_pct), "books": int(r.books_in_consensus), "others": {}})
+                    "edge_pct": float(r.edge_pct), "books": int(r.books_in_consensus) + 1, "others": {}})
     return out
 
 
@@ -224,11 +224,13 @@ def arbitrages(lines_rows, games_l, link_l, props_arb, n=8):
                     "profit_pct": round(100 * (1 / inv - 1), 2)})
     for r in props_arb.itertuples():
         inv = 1 / r.best_odds_over + 1 / r.best_odds_under
+        lu = float(getattr(r, "line_under", r.line))           # > line = a middle: both sides can win
         out.append({"source": "EL props", "match": r.game, "kickoff": "", "market": f"{r.player} {r.market} {r.line:g}",
+                    **({"line_under": lu} if lu != r.line else {}),
                     "legs": [{"sel": "Over" + (" (N+)" if r.best_is_milestone else ""), "odds": float(r.best_odds_over),
                               "book": BOOKS.get(r.best_book_over, r.best_book_over),
                               "stake_pct": round(100 / r.best_odds_over / inv, 1)},
-                             {"sel": "Under", "odds": float(r.best_odds_under),
+                             {"sel": "Under" if lu == r.line else f"Under {lu:g}", "odds": float(r.best_odds_under),
                               "book": BOOKS.get(r.best_book_under, r.best_book_under),
                               "stake_pct": round(100 / r.best_odds_under / inv, 1)}],
                     "profit_pct": float(r.profit_pct)})

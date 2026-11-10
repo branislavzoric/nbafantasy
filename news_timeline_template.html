@@ -20,6 +20,9 @@ body { width: 540px; height: 675px; overflow: hidden; background: var(--bg); col
 .post { position: relative; width: 540px; height: 675px; padding: 16px 22px 14px; display: flex; flex-direction: column;
   background: radial-gradient(ellipse 80% 45% at 50% 0%, rgba(255, 90, 79, .22), transparent 70%), var(--bg); }
 .top { display: flex; justify-content: space-between; align-items: center; }
+.lead { display: flex; align-items: center; gap: 10px; }
+.brand { height: 30px; width: auto; filter: drop-shadow(0 1px 5px rgba(0, 0, 0, .75)); }
+.brand.mark { height: 38px; }
 .kick { font-size: 9.5px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; background: var(--pop); color: #111; padding: 4px 8px; border-radius: 3px; }
 .date { font-size: 9.5px; font-weight: 700; color: var(--muted); }
 h1 { margin: 18px 0 2px; font-family: var(--display); font-weight: 800; font-size: 62px; line-height: .9; text-transform: uppercase; color: var(--pop); }
@@ -53,7 +56,7 @@ h1 { margin: 18px 0 2px; font-family: var(--display); font-weight: 800; font-siz
 </style>
 
 <div class="post">
-  <div class="top"><span class="kick">{{KICKER}}</span><span class="date">{{DATE}}</span></div>
+  <div class="top"><span class="lead">{{BRAND}}<span class="kick">{{KICKER}}</span></span><span class="date">{{DATE}}</span></div>
   <h1>{{LABEL}}</h1>
   <div class="sub">{{SUB}}</div>
   {{BODY}}

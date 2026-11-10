@@ -59,7 +59,7 @@ def leg(r):
     p = 1 / r.fair_odds
     return {"game": r.game, "player": r.player, "market": r.market, "side": r.side, "line": float(r.line),
             "book": r.book, "book_name": BOOK_LABELS[r.book], "odds": float(r.odds), "fair_odds": float(r.fair_odds),
-            "prob": round(p, 4), "edge_pct": float(r.edge_pct), "books": int(r.books_in_consensus),
+            "prob": round(p, 4), "edge_pct": float(r.edge_pct), "books": int(r.books_in_consensus) + 1,
             "milestone": bool(r.via_milestone)}
 
 

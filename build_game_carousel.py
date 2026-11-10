@@ -97,14 +97,15 @@ def side_vars(away, home):
 # RENDER
 # -----------------------------------------------------------------------------
 
-def board_html(away, home):
+def board_html(away, home, season_type="regular"):
     e = html.escape
 
     def side(s, other):
         logo = team_logo(s["team"])
         img = f'<img src="{e(file_url(logo))}" alt="">' if logo else ""
         won = s["score"] > other["score"]
-        rec = f'<span class="rec">Preseason {e(s["record"])}</span>' if s["record"] else ""
+        rec = (f'<span class="rec">{"Preseason " if season_type == "preseason" else ""}{e(s["record"])}</span>'
+               if s["record"] else "")
         return (f'<div class="side {"won" if won else "lost"}">{img}'
                 f'<span class="nm">{e(TEAM_NAMES.get(s["team"], s["team"]))}</span>{rec}'
                 f'<span class="pts">{s["score"]}</span><span class="res">{"Win" if won else "Loss"}</span></div>')
@@ -160,7 +161,7 @@ def cover_html(game, rows, away, home, template):
             .replace("{{KICKER}}", kicker)
             .replace("{{NOTE}}", html.escape(" · ".join(x for x in (date_label(game["game_date"]),
                                                                     home.get("venue")) if x)))
-            .replace("{{BOARD}}", board_html(away, home))
+            .replace("{{BOARD}}", board_html(away, home, game["season_type"]))
             .replace("{{LINES}}", lines_html(away, home))
             .replace("{{STATS}}", stats_html(away, home)))
 

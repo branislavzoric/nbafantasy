@@ -62,7 +62,7 @@ def scrape():
             break
         page += 1
     items = [i for i in items if COMPETITION in i["competition"]["name"].lower()
-             and "wnba" not in i["competition"]["name"].lower()]
+             and "wnba" not in i["competition"]["name"].lower() and i.get("visitor")]   # outrights have no visitor
     games = [{"id": i["id"], "home": i["home"]["name"], "away": i["visitor"]["name"],
               "kickoff": local_from_ms(i["startTime"])} for i in items]
     print(f"  {len(games)} games")

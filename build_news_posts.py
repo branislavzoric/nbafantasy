@@ -34,6 +34,8 @@ TIMELINE_TEMPLATE = os.path.join(PROJECT_DIR, "news_timeline_template.html")
 HERO_W, HERO_H = 1080, 864
 NEWS_DIR = os.path.join(PROJECT_DIR, "News")
 HASHTAGS = "#NBA #NBANews #FantasyBasketball #NBAFantasy"
+BRAND_DIR = os.path.join(PROJECT_DIR, "brand")
+BRAND = ("b3_logo.png", "brand")          # top-left logo; EuroLeague posts use only the B3 ball mark
 
 
 def fig_html(f, default_team):
@@ -140,7 +142,7 @@ def timeline_html(p, template, photos_dir):
     body = f'<div class="rows">{"".join(rows)}</div><div class="axis">{"".join(ticks)}</div>'
     return (template.replace("{{TITLE}}", e(p["label"])).replace("{{KICKER}}", e(p["kicker"]))
             .replace("{{DATE}}", e(p["date"])).replace("{{LABEL}}", e(p["label"]))
-            .replace("{{SUB}}", "Preseason injuries · when they could be back")
+            .replace("{{SUB}}", e(p.get("sub", "Preseason injuries · when they could be back")))
             .replace("{{BODY}}", body).replace("{{CONTEXT}}", e(p["context"]))
             .replace("{{SOURCE}}", "Source: " + e(p["source"])))
 
@@ -162,12 +164,13 @@ def caption(p, story, credits):
 
 
 def main():
-    global HASHTAGS
+    global HASHTAGS, BRAND
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     news_dir = NEWS_DIR
     if "--el" in sys.argv:                     # EuroLeague stories: "EuroLeague News/<date>/", logo "el/<code>"
         news_dir = os.path.join(PROJECT_DIR, "EuroLeague News")
         HASHTAGS = "#EuroLeague #Basketball #EuroLeagueNews #B3Basketball"
+        BRAND = ("b3_mark.png", "brand mark")
     day = args[0] if args else dt.date.today().isoformat()
     folder = os.path.join(news_dir, day)
     photos_dir = os.path.join(folder, "photos")
@@ -184,8 +187,10 @@ def main():
         raise SystemExit("No Chrome/Edge found -- can't render.")
     with open(TEMPLATE, encoding="utf-8") as f:
         template = f.read().replace("{{FONTS}}", font_css())
+    brand = f'<img class="{BRAND[1]}" src="{html.escape(file_url(os.path.join(BRAND_DIR, BRAND[0])))}" alt="">'
+    template = template.replace("{{BRAND}}", brand)
     with open(TIMELINE_TEMPLATE, encoding="utf-8") as f:
-        timeline_t = f.read().replace("{{FONTS}}", font_css())
+        timeline_t = f.read().replace("{{FONTS}}", font_css()).replace("{{BRAND}}", brand)
     out_dir = os.path.join(folder, "posts")
     os.makedirs(out_dir, exist_ok=True)
     work_dir = make_dir(tempfile.gettempdir())

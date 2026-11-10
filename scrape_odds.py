@@ -32,15 +32,15 @@ SCRAPERS = {
 
 
 def use_nba():
-    """Point every scraper at the NBA. Admiral and BalkanBet had no NBA player-prop listing when this
-    was written (Oct 2026); they still scrape the games, so props show up once a listing id is added."""
+    """Point every scraper at the NBA. Admiral and BalkanBet keep NBA players in their own listing
+    (Admiral sport 123 "SAD/NBA", BalkanBet "Igrači NBA"), found in their offer trees on 2026-10-21."""
     dualsoft.BOOKS["soccerbet"]["league"] = 2521548     # games and players share the league id
     dualsoft.BOOKS["maxbet"]["league"] = 144532
     admiralbet.GAMES = {"sportId": 2, "regionId": 122, "competitionId": 12}
-    admiralbet.PLAYERS = None
+    admiralbet.PLAYERS = {"sportId": 123, "regionId": 1778, "competitionId": 38429}
     mozzartbet.COMPETITION = "nba"
     superbet.TOURNAMENT = 164
-    balkanbet.GAMES_TOURNAMENT, balkanbet.PLAYERS_TOURNAMENT = 234, None
+    balkanbet.GAMES_TOURNAMENT, balkanbet.PLAYERS_TOURNAMENT = 234, 29248
     return "nba", "NBA"
 
 

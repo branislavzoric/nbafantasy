@@ -17,7 +17,7 @@ Writes (schema "odds", rebuilt on every run):
 And "Odds/compare/<date>/":
   odds_comparison.csv  everything, books as columns + best price
   value_bets.csv       prices above the no-vig consensus of the other books
-  arbitrage.csv        lines where the best over + best under across books guarantee a profit
+  arbitrage.csv        best over (line L1) + best under (line L2 >= L1) across books with a guaranteed profit
   unmatched.csv        player names that couldn't be matched
 
 Usage:
@@ -39,6 +39,16 @@ from sqlalchemy import create_engine, text
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 OUT_DIR = os.path.join(PROJECT_DIR, "Odds", "compare")
 BOOKS = ["soccerbet", "maxbet", "admiralbet", "mozzartbet", "superbet", "balkanbet"]
+# Soccerbet, MaxBet and Admiral price NBA/EL player props from one feed (2026-10-21: 93% identical prices,
+# 99% within 0.05), so the consensus counts them as ONE source; every book is still shown and bet on.
+FEED = {"soccerbet", "maxbet", "admiralbet"}
+
+
+def independent(p, exclude=()):
+    """No-vig probabilities by book -> one value per independent source (the feed books averaged)."""
+    p = p.drop([b for b in exclude if b in p.index]).dropna()
+    feed = p[p.index.isin(FEED)]
+    return list(p[~p.index.isin(FEED)].values) + ([feed.mean()] if len(feed) else [])
 # Books with full player names go first so they define the players; initials attach to them
 NAME_PRIORITY = ["soccerbet", "admiralbet", "maxbet", "superbet", "balkanbet", "mozzartbet"]
 SUFFIXES = {"jr", "sr", "ii", "iii", "iv"}
@@ -148,9 +158,19 @@ def match_players(props, canon, glink):
              .assign(prio=lambda d: d["source"].map(NAME_PRIORITY.index))
              .sort_values(["prio", "player"]).to_dict("records"))
     by_game = defaultdict(list)                    # cgame -> indices into players
+    # One book listing the same short name for two teams ("C.Jones" = Carlik and Chris Jones) can't be split:
+    # its props are keyed by name only, so they would mix -> leave that name unmatched
+    teams_of = defaultdict(set)
+    for n in names:
+        if isinstance(n["team"], str) and n["team"]:
+            teams_of[(n["source"], n["game_id"], n["player"])].add(plain(n["team"]))
     for n in names:
         cg = glink.get((n["source"], n["game_id"]))
         if cg is None:
+            continue
+        if len(teams_of[(n["source"], n["game_id"], n["player"])]) > 1:
+            if not any(u["source"] == n["source"] and u["player"] == n["player"] for u in unmatched):
+                unmatched.append({**n, "reason": "same name for players of both teams"})
             continue
         first, surname, tokens = parse_player(n["player"])
         side = side_of_team(n["team"], canon[cg])
@@ -265,7 +285,8 @@ def analyse(cmp, min_books, min_edge):
     under = ou[ou["side"] == "Under"].set_index(key)[books]
     over, under = over.align(under, join="inner")
     p_over = (1 / over) / (1 / over + 1 / under)            # NaN where a book lacks either side
-    fair = pd.DataFrame({"fair_over": p_over.mean(axis=1), "pair_books": p_over.notna().sum(axis=1)})
+    fair = pd.DataFrame({"fair_over": [sum(v) / len(v) if (v := independent(r)) else float("nan") for _, r in p_over.iterrows()],
+                         "pair_books": [len(independent(r)) for _, r in p_over.iterrows()]}, index=p_over.index)
 
     # Value: a book's price vs the consensus of the OTHER books (leave-one-out, so a book's own
     # outlier price doesn't drag the "fair" line toward itself)
@@ -281,7 +302,9 @@ def analyse(cmp, min_books, min_edge):
                 price = r[b]
                 if pd.isna(price):
                     continue
-                others = p_over.loc[(game, player, market, line)].drop(b).dropna()
+                # leave-one-out: drop the book itself, or its whole feed
+                others = pd.Series(independent(p_over.loc[(game, player, market, line)], FEED if b in FEED else (b,)),
+                                   dtype=float)
                 if len(others) < min_books - 1:
                     continue
                 p = others.mean() if side == "Over" else 1 - others.mean()
@@ -293,21 +316,38 @@ def analyse(cmp, min_books, min_edge):
                                   "edge_pct": round(100 * edge, 1), "books_in_consensus": len(others)})
     value = pd.DataFrame(value).sort_values("edge_pct", ascending=False) if value else pd.DataFrame()
 
-    # Arbitrage: best over and best under (any books) at the same line
+    # Arbitrage: best over at line L1 + best under at line L2 >= L1 (any books). L1 == L2 is the classic
+    # arb; L2 > L1 also can't lose and is a "middle": both sides win when the stat lands between them.
     ou = cmp[cmp["side"].isin(["Over", "Under"])].copy()
     ou["best_is_milestone"] = [b in str(m or "").split(",") for b, m in zip(ou.best_book, ou.milestone_books)]
-    best_o = ou[ou.side == "Over"].set_index(key)[["best_odds", "best_book", "best_is_milestone"]]
-    best_u = ou[ou.side == "Under"].set_index(key)[["best_odds", "best_book"]]
-    arb = best_o.join(best_u, lsuffix="_over", rsuffix="_under", how="inner")
-    arb["margin_pct"] = 100 * (1 / arb.best_odds_over + 1 / arb.best_odds_under - 1)
-    arb = arb[arb.margin_pct < 0].sort_values("margin_pct").reset_index()
+    arb = []
+    for (game, player, market), g in ou.groupby(["game", "player", "market"]):
+        overs = g[g.side == "Over"].to_dict("records")
+        unders = g[g.side == "Under"].to_dict("records")
+        for o in overs:
+            for u in unders:
+                if u["line"] < o["line"]:
+                    continue
+                margin = 100 * (1 / o["best_odds"] + 1 / u["best_odds"] - 1)
+                if margin < 0:
+                    arb.append({"game": game, "player": player, "market": market, "line": o["line"],
+                                "line_under": u["line"], "best_odds_over": o["best_odds"], "best_book_over": o["best_book"],
+                                "best_is_milestone": o["best_is_milestone"], "best_odds_under": u["best_odds"],
+                                "best_book_under": u["best_book"], "margin_pct": margin,
+                                "middle": u["line"] - o["line"]})
+    cols = ["game", "player", "market", "line", "line_under", "best_odds_over", "best_book_over", "best_is_milestone",
+            "best_odds_under", "best_book_under", "margin_pct", "middle"]
+    arb = pd.DataFrame(arb, columns=cols)
     arb["profit_pct"] = (-arb.margin_pct / (100 + arb.margin_pct) * 100).round(2)
+    # one row per player/market: the pair with the best guaranteed profit (ties -> the wider middle)
+    arb = (arb.sort_values(["profit_pct", "middle"], ascending=False)
+              .drop_duplicates(["game", "player", "market"]).reset_index(drop=True))
     return cmp, value, arb
 
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--min-books", type=int, default=3, help="books needed for a consensus line")
+    ap.add_argument("--min-books", type=int, default=3, help="independent sources needed for a consensus line (the feed books count once)")
     ap.add_argument("--min-edge", type=float, default=0.03, help="edge needed to flag a value bet")
     args = ap.parse_args()
     load_dotenv(os.path.join(PROJECT_DIR, ".env"))
@@ -359,9 +399,10 @@ def main():
     if len(arb):
         print("\nArbitrage (best over + best under across books):")
         for _, r in arb.head(10).iterrows():
-            print(f"  {r.profit_pct:>4}%  {r.player:<24} {r.market:<12} {r.line:>5}  "
-                  f"O {r.best_odds_over} @ {r.best_book_over}{' (milestone)' if r.best_is_milestone else ''}"
-                  f" / U {r.best_odds_under} @ {r.best_book_under}")
+            print(f"  {r.profit_pct:>5}%  {r.player:<24} {r.market:<12} "
+                  f"O {r.line:g} {r.best_odds_over} @ {r.best_book_over}{' (milestone)' if r.best_is_milestone else ''}"
+                  f" / U {r.line_under:g} {r.best_odds_under} @ {r.best_book_under}"
+                  f"{f'  middle {r.middle:g}' if r.middle else ''}")
     print(f"\nCSVs -> {folder}")
 
 

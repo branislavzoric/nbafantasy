@@ -21,6 +21,8 @@ Usage:
   python collect_boxscores.py                       # catch up through yesterday
   python collect_boxscores.py 2026-10-05            # one date (US Eastern game date)
   python collect_boxscores.py 2026-10-03 2026-10-05 # a date range
+  python collect_boxscores.py 2025-10-21 2026-06-20 --no-raw   # backfill: DB only, no "Box Scores/" files
+                                                               # (the site's Games tab reads that folder)
 """
 
 import datetime as dt
@@ -172,6 +174,8 @@ def parse_game(summary, day, now):
         for stat_block in team_block["statistics"]:
             keys = stat_block["keys"]
             for a in stat_block["athletes"]:
+                if not (a.get("athlete") or {}).get("id"):   # rare ESPN entry without an athlete id
+                    continue
                 line = {
                     "game_id": game["game_id"],
                     "player_id": a["athlete"]["id"],
@@ -239,7 +243,7 @@ def default_range(engine):
 # -----------------------------------------------------------------------------
 
 def parse_args(engine):
-    args = sys.argv[1:]
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
     if not args:
         return default_range(engine)
     start = dt.date.fromisoformat(args[0])
@@ -269,8 +273,13 @@ def main():
                 if event["status"]["type"]["name"] != "STATUS_FINAL":
                     print(f"  {day}  {name:12} {event['status']['type']['name']} -- skipped")
                     continue
-                summary = get_json(SUMMARY_URL, {"event": event["id"]})
-                save_raw(summary, day)
+                try:
+                    summary = get_json(SUMMARY_URL, {"event": event["id"]})
+                except requests.RequestException as e:   # one missing summary shouldn't stop the run
+                    print(f"  {day}  {name:12} summary unavailable ({e}) -- skipped")
+                    continue
+                if "--no-raw" not in sys.argv:
+                    save_raw(summary, day)
                 game, lines = parse_game(summary, day, dt.datetime.now(dt.timezone.utc).replace(tzinfo=None))
                 upsert(conn, games_t, [game], ["game_id"])
                 upsert(conn, boxscores_t, lines, ["game_id", "player_id"])

@@ -1,29 +1,61 @@
 {
+  "updatedAt": "2026-11-06T15:29:13.000Z",
+  "createdAt": "2026-11-06T15:19:09.018Z",
   "id": "playersPmSchedule01",
-  "name": "Players +/- - Schedule",
-  "active": true,
-  "settings": {"executionOrder": "v1", "timezone": "Europe/Belgrade"},
+  "name": "B3 - Players +/- schedule",
+  "description": null,
+  "active": false,
+  "isArchived": false,
   "nodes": [
     {
       "id": "d5000000-0000-4000-8000-000000000001",
       "name": "Every 15 min",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [0, 200],
-      "parameters": {"rule": {"interval": [{"field": "minutes", "minutesInterval": 15}]}}
+      "position": [
+        0,
+        200
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 15
+            }
+          ]
+        }
+      }
     },
     {
       "id": "d5000000-0000-4000-8000-000000000002",
       "name": "Official injury report",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 200],
+      "position": [
+        240,
+        200
+      ],
       "parameters": {
         "method": "POST",
         "url": "http://host.docker.internal:8765/run/injuries",
         "sendHeaders": true,
-        "headerParameters": {"parameters": [{"name": "X-Runner-Token", "value": "__PM_RUNNER_TOKEN__"}]},
-        "options": {"response": {"response": {"neverError": true}}, "timeout": 20000}
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Runner-Token",
+              "value": "K1bLTPy0ztEiBoJ6XyVVuFHvufTsCe3Tc4yhOetvQg4"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 20000
+        }
       }
     },
     {
@@ -31,33 +63,154 @@
       "name": "Refresh times",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [0, 420],
-      "parameters": {"rule": {"interval": [
-        {"field": "cronExpression", "expression": "0 30 10 * * *"},
-        {"field": "cronExpression", "expression": "0 0 13 * * *"},
-        {"field": "cronExpression", "expression": "0 0 16 * * *"},
-        {"field": "cronExpression", "expression": "0 0 18 * * *"},
-        {"field": "cronExpression", "expression": "0 30 23 * * *"}
-      ]}}
+      "position": [
+        0,
+        420
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 30 10 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 0 13 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 0 16 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 0 18 * * *"
+            },
+            {
+              "field": "cronExpression",
+              "expression": "0 30 23 * * *"
+            }
+          ]
+        }
+      }
     },
     {
       "id": "d5000000-0000-4000-8000-000000000004",
       "name": "Full Players +/- refresh",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [240, 420],
+      "position": [
+        240,
+        420
+      ],
       "parameters": {
         "method": "POST",
         "url": "http://host.docker.internal:8765/run/refresh",
         "sendHeaders": true,
-        "headerParameters": {"parameters": [{"name": "X-Runner-Token", "value": "__PM_RUNNER_TOKEN__"}]},
-        "options": {"response": {"response": {"neverError": true}}, "timeout": 20000}
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Runner-Token",
+              "value": "K1bLTPy0ztEiBoJ6XyVVuFHvufTsCe3Tc4yhOetvQg4"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "neverError": true
+            }
+          },
+          "timeout": 20000
+        }
       }
     }
   ],
   "connections": {
-    "Every 15 min": {"main": [[{"node": "Official injury report", "type": "main", "index": 0}]]},
-    "Refresh times": {"main": [[{"node": "Full Players +/- refresh", "type": "main", "index": 0}]]}
+    "Every 15 min": {
+      "main": [
+        [
+          {
+            "node": "Official injury report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Refresh times": {
+      "main": [
+        [
+          {
+            "node": "Full Players +/- refresh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
   },
-  "pinData": {}
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Belgrade"
+  },
+  "staticData": {
+    "node:Every 15 min": {
+      "recurrenceRules": [
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null
+      ]
+    },
+    "node:Refresh times": {
+      "recurrenceRules": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null,
+        null,
+        null,
+        null,
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": {},
+  "versionId": "35dddf2e-bc10-441e-b61c-58e8acaf1a39",
+  "activeVersionId": null,
+  "versionCounter": 1,
+  "triggerCount": 2,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-11-06T15:19:09.022Z",
+      "createdAt": "2026-11-06T15:19:09.022Z",
+      "role": "workflow:owner",
+      "workflowId": "playersPmSchedule01",
+      "projectId": "zkqJtf4o6eT9iRhl",
+      "project": {
+        "updatedAt": "2026-10-02T15:08:07.258Z",
+        "createdAt": "2026-10-02T13:57:54.918Z",
+        "id": "zkqJtf4o6eT9iRhl",
+        "name": "Branislav Zoric <branislavzoric87@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "bb05a9da-b2f3-4557-bd3a-3cb8a56982ee"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
+  }
 }

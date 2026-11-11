@@ -231,8 +231,8 @@ Credential key:
 
 | Workflow | ID | Reads | File |
 |---|---|---|---|
-| NBA Fantasy - Post to Instagram | `8DEfqsR5VIAwy56c` | `content/approved/` (lowest-sorted .json) | `n8n Docker/instagram_post.json` |
-| NBA Fantasy - Post Carousel | `nbaCarouselWf001` | `content/carousels/approved/` | `n8n Docker/carousel_post.json` |
+| B3 - Instagram post | `8DEfqsR5VIAwy56c` | `content/approved/` (lowest-sorted .json) | `n8n Docker/instagram_post.json` |
+| B3 - Instagram carousel | `nbaCarouselWf001` | `content/carousels/approved/` | `n8n Docker/carousel_post.json` |
 
 Run one manually:
 
@@ -244,8 +244,9 @@ MSYS_NO_PATHCONV=1 docker exec -e N8N_RUNNERS_BROKER_PORT=5690 n8ndocker-n8n-1 n
 
 > **Nothing is scheduled right now.** `b3basketball-site/daily/run_daily.cmd news | odds | morning` exists, and the
 > skill describes it as started by Windows Task Scheduler. No scheduled task on this PC points at it, though. Every
-> run so far was started from a Claude session. The only timer was the n8n Nightly Top 10 cron, and it was set for a
-> single night.
+> run so far was started from a Claude session. n8n has no active workflows: the two Instagram
+> workflows only have a manual Start trigger (the old one-off date crons were removed on 2026-11-11, because a cron like
+> `35-55/5 12 3 10 *` repeats every year), and "B3 - Players +/- schedule" exists but is switched off.
 
 Sizes below were measured after the Oct 20 cleanup.
 

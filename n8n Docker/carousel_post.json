@@ -1,7 +1,11 @@
 {
+  "updatedAt": "2026-10-07T08:26:52.000Z",
+  "createdAt": "2026-10-07T08:26:49.125Z",
   "id": "nbaCarouselWf001",
-  "name": "NBA Fantasy - Post Carousel",
+  "name": "B3 - Instagram carousel",
+  "description": null,
   "active": false,
+  "isArchived": false,
   "nodes": [
     {
       "id": "c4000000-0000-4000-8000-000000000001",
@@ -246,30 +250,6 @@
       "parameters": {
         "command": "=mkdir -p /files/content/carousels/posted && mv /files/content/carousels/approved/{{ $('Pick Round').first().json.slug }}.* /files/content/carousels/approved/{{ $('Pick Round').first().json.slug }}_* /files/content/carousels/posted/"
       }
-    },
-    {
-      "id": "c4000000-0000-4000-8000-000000000013",
-      "name": "Schedule Rounds",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        0,
-        500
-      ],
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "45-57/3 10 7 10 *"
-            },
-            {
-              "field": "cronExpression",
-              "expression": "0-6/3 11 7 10 *"
-            }
-          ]
-        }
-      }
     }
   ],
   "connections": {
@@ -393,21 +373,55 @@
           }
         ]
       ]
-    },
-    "Schedule Rounds": {
-      "main": [
-        [
-          {
-            "node": "Read Approved JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
     }
   },
   "settings": {
     "executionOrder": "v1",
     "timezone": "Europe/Belgrade"
+  },
+  "staticData": {
+    "node:Schedule Rounds": {
+      "recurrenceRules": [
+        null,
+        null
+      ],
+      "recurrenceRuleSignatures": [
+        null,
+        null
+      ]
+    }
+  },
+  "meta": null,
+  "nodeGroups": [],
+  "pinData": null,
+  "versionId": "65ed6973-b83c-4078-843f-926ab6f558df",
+  "activeVersionId": null,
+  "versionCounter": 2,
+  "triggerCount": 1,
+  "sourceWorkflowId": null,
+  "tags": [],
+  "shared": [
+    {
+      "updatedAt": "2026-10-07T08:26:49.129Z",
+      "createdAt": "2026-10-07T08:26:49.129Z",
+      "role": "workflow:owner",
+      "workflowId": "nbaCarouselWf001",
+      "projectId": "zkqJtf4o6eT9iRhl",
+      "project": {
+        "updatedAt": "2026-10-02T15:08:07.258Z",
+        "createdAt": "2026-10-02T13:57:54.918Z",
+        "id": "zkqJtf4o6eT9iRhl",
+        "name": "Branislav Zoric <branislavzoric87@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "bb05a9da-b2f3-4557-bd3a-3cb8a56982ee"
+      }
+    }
+  ],
+  "versionMetadata": {
+    "name": null,
+    "description": null
   }
 }

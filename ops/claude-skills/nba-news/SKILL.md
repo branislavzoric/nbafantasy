@@ -82,7 +82,7 @@ text overlapping the photo, wrapped big text, old-team jerseys. Fix and rebuild,
 ## 7. Post (only when the user approves)
 
 The user wants **separate posts, 5 minutes apart**, in id order. They go through the single-post n8n workflow
-"NBA Fantasy - Post to Instagram" (id `8DEfqsR5VIAwy56c`), which posts the lowest-sorted `.json` in
+"B3 - Instagram post" (id `8DEfqsR5VIAwy56c`), which posts the lowest-sorted `.json` in
 `content/approved/` (uses its `caption` and `image`) and moves it to `content/posted/`.
 
 1. Check `content/approved/` is empty (it's shared with the projection cards).

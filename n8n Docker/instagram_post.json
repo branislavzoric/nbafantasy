@@ -2,9 +2,9 @@
   "updatedAt": "2026-10-03T10:22:04.000Z",
   "createdAt": "2026-10-02T15:32:17.844Z",
   "id": "8DEfqsR5VIAwy56c",
-  "name": "NBA Fantasy - Post to Instagram",
+  "name": "B3 - Instagram post",
   "description": null,
-  "active": true,
+  "active": false,
   "isArchived": false,
   "nodes": [
     {
@@ -174,34 +174,6 @@
       ]
     },
     {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "field": "cronExpression",
-              "expression": "35-55/5 12 3 10 *"
-            },
-            {
-              "field": "cronExpression",
-              "expression": "*/5 13 3 10 *"
-            },
-            {
-              "field": "cronExpression",
-              "expression": "0-30/5 14 3 10 *"
-            }
-          ]
-        }
-      },
-      "id": "b2000000-0000-4000-8000-000000000001",
-      "name": "Schedule Round 1",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        4,
-        0
-      ]
-    },
-    {
       "id": "a1000000-0000-4000-8000-000000000010",
       "name": "Start",
       "type": "n8n-nodes-base.manualTrigger",
@@ -291,17 +263,6 @@
         ]
       ]
     },
-    "Schedule Round 1": {
-      "main": [
-        [
-          {
-            "node": "Read Approved JSON",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Start": {
       "main": [
         [
@@ -335,9 +296,9 @@
   "meta": null,
   "nodeGroups": [],
   "pinData": {},
-  "versionId": "8f812762-ed0c-47e6-89f2-c0c2182c8d09",
-  "activeVersionId": "8f812762-ed0c-47e6-89f2-c0c2182c8d09",
-  "versionCounter": 9,
+  "versionId": "90e61dc3-1f86-4a4f-9b17-cd0a23488cff",
+  "activeVersionId": null,
+  "versionCounter": 11,
   "triggerCount": 1,
   "sourceWorkflowId": null,
   "tags": [],

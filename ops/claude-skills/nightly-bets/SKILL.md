@@ -93,7 +93,7 @@ Then wait. **Don't post until the user says to.**
 
 ## 5. Post (after the user approves)
 
-Carousel workflow "NBA Fantasy - Post Carousel" (id `nbaCarouselWf001`) posts the lowest-sorted `.json` in
+Carousel workflow "B3 - Instagram carousel" (id `nbaCarouselWf001`) posts the lowest-sorted `.json` in
 `content/carousels/approved/` (`{"slug", "images": [...], "caption"}`, images in the same folder) and moves it to
 `content/carousels/posted/`.
 1. Check `content/carousels/approved/` is empty.

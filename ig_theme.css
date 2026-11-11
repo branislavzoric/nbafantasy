@@ -1,18 +1,19 @@
-/* B3 Basketball Instagram theme: direction C, the same design as b3basketball.com (design/tokens.css in the site repo).
-   Midnight navy ground, court orange as the one accent, white "paper" tickets, Anton for titles, Barlow Condensed for
+/* B3 Basketball Instagram theme, the same design as b3basketball.com (design/tokens.css in the site repo): one common
+   look plus a palette per section (render_common.SECTION_THEMES: nba, el, fb). Dark ground, one accent colour, white "paper" tickets, Anton for titles, Barlow Condensed for
    names and labels, Inter for running text, DM Mono for odds. render_common.font_css() appends this file to every
    slide's <style>, so it applies to news posts, timelines, bet and results carousels and football slides alike.
    It loads BEFORE each template's own CSS, so variables are set on :root:root and rules carry `html body` to win. */
 :root:root {
-  --bg: #0B1F3A; --bg2: #0E2850;
-  --paper: #FFFFFF; --paper-ink: #0B1220; --paper-muted: #535C6B;
-  --pop: #FF5A1F; --arb: #FF5A1F; --edge: #15803D; --hurt: #F43F5E;
+  /* common B3 Basketball theme (bet and results carousels): Night Court near-black + the logo's pink */
+  --bg: #0E1116; --bg2: #1A1F27;
+  --paper: #FFFFFF; --paper-ink: #12151A; --paper-muted: #5B6270;
+  --pop: #FF5C93; --arb: #FF5C93; --edge: #15803D; --hurt: #F43F5E;
   --won: #34D399; --lost: #F43F5E;
   --ink: #FFFFFF; --muted: rgba(255, 255, 255, .74); --faint: rgba(255, 255, 255, .14);
   --font: "Inter", "Segoe UI", system-ui, sans-serif;
   --display: "Barlow Condensed", "Arial Narrow", sans-serif;
   --mono: "DM Mono", ui-monospace, Consolas, monospace;
-  --title: "Anton", "Impact", "Arial Narrow", sans-serif;
+  --title: "Barlow Condensed", "Arial Narrow", sans-serif;
 }
 
 /* grounds: flat navy, one orange rule along the bottom like the site's section bands */
@@ -26,14 +27,13 @@ html body .post > .text { background: var(--bg); border-top: 4px solid var(--pop
 html body .kick { background: var(--pop); color: #0B1220; border-radius: 3px; font-family: var(--font); }
 html body .date { color: var(--muted); }
 
-/* titles in Anton (single weight: 400) */
-html body h1, html body .head, html body .arbcard .pl { font-family: var(--title); font-weight: 400; letter-spacing: .005em; line-height: .95; }
+/* titles in Barlow Condensed, like the site */
+html body h1, html body .head, html body .arbcard .pl { font-family: var(--title); font-weight: 800; letter-spacing: .005em; line-height: .95; }
 html body h1 span { color: var(--pop); }
 html body .post .label { font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: .01em; line-height: 1.05; }
-html body .text.nostats .label { font-family: var(--title); font-weight: 400; font-size: 28px; }
-html body .stat b, html body .profit b, html body .tot .v { font-family: var(--title); font-weight: 400; }
-html body .stat b { color: var(--pop); font-size: 64px; }
-html body .stats.one .stat b { font-size: 72px; }
+html body .text.nostats .label { font-family: var(--title); font-weight: 800; font-size: 28px; }
+html body .stat b, html body .profit b, html body .tot .v { font-family: var(--title); font-weight: 800; }
+html body .stat b { color: var(--pop); }
 html body .fig .tag b { color: var(--pop); }
 
 /* paper tickets and slips: clean white cards, ink text, green for the edge */

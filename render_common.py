@@ -47,14 +47,27 @@ def file_url(path):
     return "file:///" + path.replace("\\", "/")
 
 
-def font_css():
+# Section palettes for Instagram, matching the website's sections (design/tokens.css in the site repo).
+# Each sets the slide ground and the one accent colour; everything else comes from ig_theme.css.
+SECTION_THEMES = {
+    "nba": "--bg:#0E1116;--bg2:#0B1F4D;--pop:#FF4D5E;--arb:#FF4D5E",   # Night Court: NBA navy + red
+    "el": "--bg:#14163F;--bg2:#1E2160;--pop:#FF7A33;--arb:#FF7A33",     # EuroLeague navy + orange
+    "fb": "--bg:#0F3D2E;--bg2:#145039;--pop:#C6F432;--arb:#C6F432",     # football pitch + lime
+}
+
+
+def font_css(theme=None):
+    """Local fonts + the B3 Instagram theme. theme: None (common B3 pink), "nba", "el" or "fb"."""
     with open(os.path.join(FONT_DIR, "fonts.css"), encoding="utf-8") as f:
         css = f.read()
     css = re.sub(r"url\(([^)]+\.woff2)\)",
                  lambda m: f"url({file_url(os.path.join(FONT_DIR, m.group(1)))})", css)
     # the B3 Basketball Instagram theme rides along with the fonts, so every slide renderer gets it
     with open(os.path.join(PROJECT_DIR, "ig_theme.css"), encoding="utf-8") as f:
-        return css + "\n" + f.read()
+        css += "\n" + f.read()
+    if theme:
+        css += "\n:root:root:root{" + SECTION_THEMES[theme] + "}"
+    return css
 
 
 def find_browser():

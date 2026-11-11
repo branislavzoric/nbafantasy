@@ -182,11 +182,11 @@ def main():
     if not browser:
         raise SystemExit("No Chrome/Edge found -- can't render.")
     with open(TEMPLATE, encoding="utf-8") as f:
-        template = f.read().replace("{{FONTS}}", font_css())
+        template = f.read().replace("{{FONTS}}", font_css("el" if "--el" in sys.argv else "nba"))
     brand = f'<img class="{BRAND[1]}" src="{html.escape(file_url(os.path.join(BRAND_DIR, BRAND[0])))}" alt="">'
     template = template.replace("{{BRAND}}", brand)
     with open(TIMELINE_TEMPLATE, encoding="utf-8") as f:
-        timeline_t = f.read().replace("{{FONTS}}", font_css()).replace("{{BRAND}}", brand)
+        timeline_t = f.read().replace("{{FONTS}}", font_css("el" if "--el" in sys.argv else "nba")).replace("{{BRAND}}", brand)
     out_dir = os.path.join(folder, "posts")
     os.makedirs(out_dir, exist_ok=True)
     work_dir = make_dir(tempfile.gettempdir())

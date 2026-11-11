@@ -310,7 +310,7 @@ def caption(data):
 
 def render(data, folder):
     with open(TEMPLATE, encoding="utf-8") as f:
-        template = f.read().replace("{{FONTS}}", font_css()).replace("{{BODY}}", EXTRA_CSS + "{{BODY}}")
+        template = f.read().replace("{{FONTS}}", font_css("fb")).replace("{{BODY}}", EXTRA_CSS + "{{BODY}}")
     slides = [("01_cover", cover(data)), ("02_picks-1-5", picks_slide(data, 0)),
               ("03_picks-6-10", picks_slide(data, 5))]
     if data["slip_4"]:

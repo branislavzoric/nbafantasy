@@ -33,7 +33,7 @@ import tempfile
 import unicodedata
 from collections import defaultdict
 
-from build_player_cards import find_browser, font_css, make_dir, render_png
+from render_common import find_browser, font_css, make_dir, render_png
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 FOOT_DIR = os.path.join(PROJECT_DIR, "Odds", "football")

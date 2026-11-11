@@ -30,7 +30,7 @@ import pandas as pd
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
 
-from build_odds_page import BOOK_LABELS
+from render_common import BOOK_LABELS
 from compare_odds import BOOKS, analyse
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))

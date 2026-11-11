@@ -1,6 +1,6 @@
 # b3basketball system map
 
-As of 2026-10-20. This file covers everything behind b3basketball.com and its Instagram account: where the data comes
+As of 2026-10-20, updated 2026-11-11 (fantasy work, recap reels and old experiments removed). This file covers everything behind b3basketball.com and its Instagram account: where the data comes
 from, what runs on the PC, what Claude does, and how posts and pages get published. The last two sections cover
 moving the project off the PC.
 
@@ -10,9 +10,9 @@ the PC for now.
 | | |
 |---|---|
 | Code folders | 2: `nbafantasy` (pipeline) and `b3basketball-site` (site + Worker) |
-| Pipeline code | 51 Python scripts, 22 HTML render templates, 6 bookmaker scrapers |
+| Pipeline code | 18 top-level Python scripts, 3 HTML render templates, 6 bookmaker scrapers, `players_pm/`, `Odds/football/` |
 | External services, APIs and tools | 26 |
-| n8n workflows posting to Instagram | 4 |
+| n8n workflows posting to Instagram | 2 (single posts, carousels) |
 | Local data and media | about 0.7 GB, on this PC only (after the Oct 20 cleanup) |
 
 ## Contents
@@ -30,15 +30,14 @@ the PC for now.
 
 Today one Windows PC does everything:
 - Python scripts pull data into Postgres and JSON files.
-- Chrome and ffmpeg render images and reels.
+- Chrome renders images (`render_common.py`).
 - Claude Code researches and writes.
 - Two paths publish the results: **wrangler** deploys the site to Cloudflare, and **n8n** posts to Instagram.
 
 ```mermaid
 flowchart LR
   subgraph SRC["Data sources"]
-    ESPN["ESPN APIs<br/>scores, box scores, standings,<br/>fantasy projections"]
-    YAH["Yahoo Fantasy API<br/>(OAuth)"]
+    ESPN["ESPN APIs<br/>scores, box scores, standings"]
     EL["EuroLeague API<br/>results, box scores"]
     BK["6 Serbian bookmakers<br/>Soccerbet · MaxBet · Admiral<br/>Mozzart · Superbet · BalkanBet"]
     NEWS["News sites<br/>Hoops Rumors · ESPN · Yahoo · NBC<br/>Eurohoops · BasketNews"]
@@ -46,11 +45,11 @@ flowchart LR
     SOC["X · Instagram · YouTube<br/>(embed checks)"]
   end
   subgraph PC["Windows PC"]
-    CC["Claude Code<br/>skills: b3-site-daily · nba-news<br/>nightly-bets · last-night-recap"]
+    CC["Claude Code<br/>skills: b3-site-daily · nba-news<br/>nightly-bets"]
     PY["Python pipeline<br/>~/nbafantasy (venv)"]
     PG[("Postgres 16<br/>localhost:5433")]
-    FS[("Local folders<br/>News · Odds · Content<br/>Box Scores · Reels")]
-    REN["Chrome headless + ffmpeg<br/>PNG cards, carousels, reels"]
+    FS[("Local folders<br/>News · Odds · Content<br/>Box Scores")]
+    REN["Chrome headless<br/>PNG posts, carousels"]
     N8N["n8n in Docker<br/>:5678"]
     SITE["build_site.py<br/>b3basketball-site/public"]
   end
@@ -65,7 +64,6 @@ flowchart LR
   SOC --> PY
   WM --> PY
   ESPN --> PY
-  YAH --> PY
   EL --> PY
   BK --> PY
   CC -->|runs scripts, writes JSON| PY
@@ -87,8 +85,7 @@ Arrows show how data moves. Everything inside "Windows PC" stops when the PC is 
 | 1. Website news | skill `b3-site-daily` (news mode) | b3basketball.com news pages |
 | 2. Bets | skills `nightly-bets`, `b3-site-daily` (odds mode) | Against the Odds board, bet carousels |
 | 3. Settlement | next morning, `settle_tonight.py <date>` | results page, ledger, results carousel |
-| 4. Instagram publishing | n8n, after you approve | posts, carousels, reels |
-| 5. Fantasy content | by hand / skill `last-night-recap` | cards, reels, draft boards, `/fantasy` |
+| 4. Instagram publishing | n8n, after you approve | posts, carousels |
 
 ### 1. Website news (b3-site-daily, "news" mode)
 
@@ -159,42 +156,16 @@ flowchart LR
   subgraph Q["content/ queues on the PC (mounted into n8n as /files/content)"]
     A1["approved/<br/>single posts"]
     A2["carousels/approved/"]
-    A3["nightly/approved/"]
-    A4["reels/approved/"]
   end
   A1 --> W1["Post to Instagram<br/>8DEfqsR5VIAwy56c"]
   A2 --> W2["Post Carousel<br/>nbaCarouselWf001"]
-  A3 --> W3["Nightly Top 10<br/>nightlyTop10Wf01"]
-  A4 --> W4["Post Reel<br/>nbaReelPostWf001"]
   W1 --> CL["Cloudinary upload<br/>(unsigned preset)"]
   W2 --> CL
-  W3 --> CL
-  W4 --> CL
   CL --> IG["graph.instagram.com<br/>container, then publish"]
   IG --> P["file moved to posted/"]
 ```
 
-Claude or a shell loop starts the workflows with `docker exec … n8n execute --id=…`. The Nightly Top 10 cron was set
-for one night only. Nothing is posted until you approve it.
-
-### 5. Fantasy content
-
-```mermaid
-flowchart TD
-  Y["yahoo_projections.py<br/>Yahoo OAuth"] --> PG[("Postgres")]
-  E["espn_nba_projections.py"] --> PG
-  BX["collect_boxscores.py"] --> PG
-  PG --> PC["build_player_cards.py<br/>projection cards"]
-  PG --> NC["build_nightly_cards.py<br/>+ Nightly Text/ by Claude"]
-  PG --> DC["build_depth_chart.py<br/>build_team_reel.py"]
-  PG --> RR["build_recap_reel.py<br/>last-night top 10 reel"]
-  PG --> DB2["draft boards:<br/>build_espn_draft_board.py and others"]
-  PC --> CQ["content queues"]
-  NC --> CQ
-  DC --> CQ
-  RR --> CQ
-  DB2 --> SITEF["site /fantasy"]
-```
+Claude or a shell loop starts the workflows with `docker exec … n8n execute --id=…`. Nothing is posted until you approve it.
 
 ## Integration inventory
 
@@ -208,9 +179,7 @@ Credential key:
 | Service | Used for | How | Credential | Code |
 |---|---|---|---|---|
 | ESPN site API | Scoreboards, box scores, standings, soccer scores, settlement | site.api.espn.com JSON | no auth | `collect_boxscores.py`, `collect_league_data.py`, `settle_tonight.py` |
-| ESPN Fantasy API | Projections, draft board, player outlooks | lm-api-reads.fantasy.espn.com | no auth | `espn_nba_projections.py` |
-| ESPN CDN | Headshots, team logos | a.espncdn.com | no auth | `build_nightly_cards.py`, `build_depth_chart.py` |
-| Yahoo Fantasy API | Projections, league checks | OAuth 2 via yfpy | secret: `.env` + `tokens.json` | `yahoo_auth.py`, `yahoo_projections.py` |
+| ESPN CDN | Headshots, team logos | a.espncdn.com | no auth | `render_common.py` |
 | EuroLeague API | Results, standings, fixtures, box scores, crests | api-live.euroleague.net, live.euroleague.net | no auth | `collect_league_data.py`, `settle_bets.py` |
 
 ### Bookmakers (all Serbian, public JSON)
@@ -254,9 +223,8 @@ Credential key:
 | Service | Used for | How | Credential | Code |
 |---|---|---|---|---|
 | Claude Code | Research, writing, running the pipeline, approvals | CLI; `claude -p` from `run_daily.cmd` | secret: your Claude login on the PC | `ops/claude-skills/` |
-| Postgres 16 | Projections, box scores, odds history | localhost:5433 / nba_fantasy | secret: `DATABASE_URL` in `.env` | SQLAlchemy |
-| Chrome headless | Renders every PNG (cards, posts, slides) | Hard-coded Windows path | none | `build_player_cards.find_browser` |
-| ffmpeg | Reels | `tools/ffmpeg/bin` | none | `build_*reel*.py` |
+| Postgres 16 | Box scores, odds history, Players +/- model | localhost:5433 / nba_fantasy | secret: `DATABASE_URL` in `.env` | SQLAlchemy |
+| Chrome headless | Renders every PNG (posts, slides) | Hard-coded Windows path | none | `render_common.find_browser` |
 | GitHub | Private code repo | `git push`, GitHub CLI (`C:\Users\Zoric\bin\gh.exe`) | secret: gh login on the PC | whole repo |
 
 ## n8n workflows
@@ -265,8 +233,6 @@ Credential key:
 |---|---|---|---|
 | NBA Fantasy - Post to Instagram | `8DEfqsR5VIAwy56c` | `content/approved/` (lowest-sorted .json) | `n8n Docker/instagram_post.json` |
 | NBA Fantasy - Post Carousel | `nbaCarouselWf001` | `content/carousels/approved/` | `n8n Docker/carousel_post.json` |
-| NBA Fantasy - Nightly Top 10 | `nightlyTop10Wf01` | `content/nightly/approved/` | `n8n Docker/nightly_top10_post.json` |
-| NBA Fantasy - Post Reel | `nbaReelPostWf001` | `content/reels/approved/` | `n8n Docker/reel_post.json` |
 
 Run one manually:
 
@@ -285,23 +251,22 @@ Sizes below were measured after the Oct 20 cleanup.
 
 | State | Where | Size | Needed online? |
 |---|---|---|---|
-| Postgres: projections, box scores, odds history | localhost:5433 / nba_fantasy | small | Yes: dump and restore |
+| Postgres: box scores, odds history, Players +/- model | localhost:5433 / nba_fantasy | small | Yes: dump and restore |
 | Site content: news.json + photos, tonight.json, results, ledger | `News/`, `EuroLeague News/`, `Odds/`, `League/` | ~270 MB | Yes: `build_site.py` reads all of it |
 | Box scores (raw ESPN / EuroLeague JSON) | `Box Scores/` | 33 MB | Yes |
 | Instagram queues and history | `Content/` | <1 MB | Queues yes; `posted/` can be archived |
-| Rendered media | `Reels/`, `Player Cards/`, charts | ~0 (cleared, rebuilt on demand) | Archive only |
-| Inputs: headshots, logos, fonts, audio | `headshots/`, `logos/`, `fonts/`, `Reel Audio/` | ~190 MB | Yes |
+| Inputs: headshots, logos, fonts | `headshots/`, `logos/`, `fonts/` | ~165 MB | Yes |
 | Secrets | `.env`, `tokens.json`, n8n credentials, wrangler login, Worker secrets, gh login | tiny | Yes: move by hand, never through git |
 
 ## Git repositories
 
-Both repos hold code only. Data, media, the venv, ffmpeg and secrets are ignored. `nbafantasy` uses a whitelist
+Both repos hold code only. Data, media, the venv and secrets are ignored. `nbafantasy` uses a whitelist
 `.gitignore`, so a new top-level folder stays out of git until it is listed there.
 
 | Repo | Remote | Tracked | Ignored |
 |---|---|---|---|
 | `C:\Users\Zoric\nbafantasy` | https://github.com/branislavzoric/nbafantasy (private, `main`) | Python scripts, HTML templates, `odds_scrapers/`, `tools_fb/`, n8n workflow JSON + compose file, fonts, logos, config JSON, `ops/claude-skills/` (copies of the 4 skills), `docs/`, `.env.example`, `requirements.txt` | `.env`, `tokens.json`, `venv/`, `tools/` (ffmpeg), all data and media folders, `Odds/football` |
-| `C:\Users\Zoric\Desktop\b3basketball-site` | none yet (local only) | `build_site.py`, `fantasy_guide.py`, `src/worker.js`, `migrations/`, `wrangler.jsonc`, `daily/run_daily.cmd` | `public/` (build output), `.wrangler/`, logs |
+| `C:\Users\Zoric\Desktop\b3basketball-site` | none yet (local only) | `build_site.py`, `src/worker.js`, `migrations/`, `wrangler.jsonc`, `daily/run_daily.cmd` | `public/` (build output), `.wrangler/`, logs |
 
 Football code in `Odds/football` is not in focus and stays on the PC only.
 
@@ -317,8 +282,8 @@ git push
 
 Three things tie the project to this machine:
 - the **files**: data, queues, media
-- the **processes**: Postgres, n8n, Chrome, ffmpeg, Claude Code
-- the **logins**: Claude, Cloudflare, Yahoo, Instagram
+- the **processes**: Postgres, n8n, Chrome, Claude Code
+- the **logins**: Claude, Cloudflare, Instagram, Telegram
 
 The simplest path moves all three to one small Linux server. Everything else stays where it is: the site on
 Cloudflare, and posting through n8n, Cloudinary and Instagram.
@@ -326,7 +291,7 @@ Cloudflare, and posting through n8n, Cloudinary and Instagram.
 ### Options
 
 **Recommended: one Linux VPS with Docker**
-- One Docker Compose file runs Postgres, n8n and a "worker" container with Python, Chrome, ffmpeg, Node and the
+- One Docker Compose file runs Postgres, n8n and a "worker" container with Python, Chrome, Node and the
   Claude Code CLI.
 - Cron or systemd timers start `claude -p "Run the b3-site-daily skill…"` and the settle and collect scripts.
 - The file layout stays the same as today, so n8n keeps reading `content/` from a shared volume.
@@ -350,7 +315,7 @@ Cloudflare, and posting through n8n, Cloudinary and Instagram.
 ```mermaid
 flowchart LR
   subgraph VPS["Linux VPS (Docker Compose)"]
-    CRON["cron / systemd timers"] --> WK["worker container<br/>Python · Chrome · ffmpeg<br/>Node · Claude Code CLI"]
+    CRON["cron / systemd timers"] --> WK["worker container<br/>Python · Chrome<br/>Node · Claude Code CLI"]
     WK <--> PG[("postgres")]
     WK <--> VOL[("data volume<br/>News · Odds · Content · Box Scores")]
     N8N["n8n"] <--> VOL
@@ -382,10 +347,9 @@ flowchart LR
 1. **Push the repos to private GitHub repositories.** Done for `nbafantasy`. `b3basketball-site` is still
    local only.
 2. **Remove the Windows-only parts.** Replace hard-coded paths with environment variables (`PROJECT_DIR`,
-   `SITE_DIR`, `CHROME_BIN`, `FFMPEG_BIN`). These hard-code `C:\Users\Zoric` or Chrome's path:
-   `build_player_cards.py`, `build_board_carousels.py`, `build_draft_board.py`, `build_highlight_reel.py`,
-   `tools_fb/*.py`, `run_daily.cmd` and the skills. Port `run_daily.cmd` to `run_daily.sh`.
-3. **Build the worker image and test it on this PC** in Docker Desktop: render one card and one carousel, then build
+   `SITE_DIR`, `CHROME_BIN`). These hard-code `C:\Users\Zoric` or Chrome's path:
+   `render_common.py`, `run_daily.cmd` and the skills. Port `run_daily.cmd` to `run_daily.sh`.
+3. **Build the worker image and test it on this PC** in Docker Desktop: render one news post and one carousel, then build
    the site.
 4. **Rent a trial server and test the bookmakers from it:** run `scrape_odds.py` and the line scrapers, then pick the
    hosting location based on the result.

@@ -23,10 +23,8 @@ import shutil
 import sys
 import tempfile
 
-from build_depth_chart import team_logo
-from build_nightly_cards import headshot
-from build_player_cards import (DEFAULT_COLORS, TEAM_COLORS, file_url, find_browser, font_css, make_dir,
-                                render_png)
+from render_common import (DEFAULT_COLORS, TEAM_COLORS, file_url, find_browser, font_css, headshot,
+                           make_dir, render_png, team_logo)
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 TEMPLATE = os.path.join(PROJECT_DIR, "news_post_template.html")
@@ -154,8 +152,6 @@ def credit_line(c):
 
 def caption(p, story, credits):
     lines = [f"🏀 {story['headline']}", "", story["summary"]]
-    if story.get("fantasy_angle"):
-        lines += ["", f"📊 Fantasy angle: {story['fantasy_angle']}"]
     lines += ["", f"Source: {p['source']}"]
     for c in credits:
         lines.append(f"📸 {credit_line(c)}")

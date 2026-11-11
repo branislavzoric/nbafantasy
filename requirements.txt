@@ -8,7 +8,6 @@ pandas==3.0.6
 numpy==2.5.3
 scipy==1.18.1
 openpyxl==3.1.5
-yfpy==17.0.0
 nba_api==1.11.4
 # System tools (not pip): Google Chrome/Chromium (headless PNG rendering), ffmpeg (reels, tools/ffmpeg/bin on Windows),
 # curl (MozzartBet goes through curl because Cloudflare blocks Python's TLS fingerprint), Node.js (npx wrangler deploy).

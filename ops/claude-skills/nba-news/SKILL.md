@@ -16,7 +16,7 @@ trades/rumors), then WebFetch the hubs for headlines and dates:
 
 Pick **10** stories. Prefer today and yesterday; up to about a week old is OK if it's strong. Skip anything
 older than ~7 days (say which big older stories were skipped). Mix the categories: big names, drama, comebacks,
-contracts, league business, off-court, plus one fantasy-relevant injury story.
+contracts, league business, off-court, plus one notable injury story.
 
 ## 2. Fact-check
 
@@ -31,13 +31,13 @@ Write `News/<date>/news.json`:
 ```json
 {"collected": "<date>", "status": "pending_review", "stories": [
   {"id": 1, "category": "Preseason", "date": "2026-10-08", "headline": "...", "summary": "2-4 sentences",
-   "quotes": ["\"...\" - Name"], "fantasy_angle": "... or null", "sources": ["url", "..."]}]}
+   "quotes": ["\"...\" - Name"], "sources": ["url", "..."]}]}
 ```
 Show the user the 10 stories (one line each with date) plus sources, and wait for their review.
 
 ## 4. Pictures (user's rules)
 
-- **Don't use the fantasy headshots** (`headshots/`, ESPN) for news. The user wants real photos that fit the story
+- **Don't use the ESPN headshots** (`headshots/`, ESPN) for news. The user wants real photos that fit the story
   (e.g. an angry Embiid for a "Stop the lies" headline).
 - **Don't use photos from news sites** (Getty/AP/Imagn on ESPN, Yahoo…): copyright strikes. The user was told this;
   if they want this week's game photos, the option is a paid editorial licence.
@@ -76,7 +76,7 @@ Show the user the 10 stories (one line each with date) plus sources, and wait fo
 venv/Scripts/python.exe build_news_posts.py <date>
 ```
 → `News/<date>/posts/NN_<slug>.png` (1080x1350) + `.json` (`slug`, `image`, caption = headline, summary,
-fantasy angle, source, 📸 photo credits, hashtags). Make a contact sheet of all 10 and look at it: cropped heads,
+source, 📸 photo credits, hashtags). Make a contact sheet of all 10 and look at it: cropped heads,
 text overlapping the photo, wrapped big text, old-team jerseys. Fix and rebuild, then show the user and wait.
 
 ## 7. Post (only when the user approves)

@@ -38,7 +38,7 @@ import unicodedata
 import urllib.request
 
 from build_bet_carousels import TEMPLATE, bet_text, date_label
-from build_player_cards import find_browser, font_css, make_dir, render_png
+from render_common import find_browser, font_css, make_dir, render_png
 
 PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
 PICKS_DIR = os.path.join(PROJECT_DIR, "Odds", "picks")

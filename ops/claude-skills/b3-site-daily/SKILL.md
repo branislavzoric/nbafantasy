@@ -29,7 +29,7 @@ the ids from 1, because id 1 leads the page. First check there's no `<date>/post
    Mix: last round's results/MVP, injuries, transfers, coaches' quotes, league business, tonight's preview.
 3. Write `News/<date>/news.json` and `EuroLeague News/<date>/news.json` in the nba-news format
    (`{"collected", "status": "published", "stories": [{"id","category","date","headline","summary","quotes",
-   "fantasy_angle","sources"}]}`). Optional per story:
+   "sources"}]}`). Optional per story:
    - `"photo": "p_name.jpg"` (file in `<date>/photos/`), `"team": "OKC"` (NBA logo tile if no photo)
    - `"timeline"` for injury round-ups: `{"axis": [start, end], "marker": [date, "Opening night"], "rows": [{"name",
      "team", "injury", "hurt", "back" (or null = out), "status"}]}`. **Only use dates stated in a source** (or carried
@@ -77,11 +77,6 @@ the ids from 1, because id 1 leads the page. First check there's no `<date>/post
 `/standings`, `/schedule`, `/euroleague/standings` and `/euroleague/schedule`, linked from each section's sub-nav. If a
 source fails, the previous snapshot is kept; say so in the summary.
 
-## Fantasy (draft board)
-
-`/fantasy` shows the ESPN draft board built from `ADP draft order/espn_draft_order.csv`, plus a PNG download.
-Only refresh it when asked, or weekly before the season. To refresh: `venv/Scripts/python.exe espn_nba_projections.py`, then
-`venv/Scripts/python.exe build_espn_draft_board.py`, then rebuild the site.
 
 ## Games (box scores, both modes, before building)
 

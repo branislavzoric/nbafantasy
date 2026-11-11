@@ -405,15 +405,16 @@ def cover(res, s, t):
             f'<div class="score"><div class="rec"><b>{s["won"]}-{s["lost"]}</b><span>top-10 picks won-lost</span></div>'
             f'<div class="pnl {tone}"><b>{units(s["profit"])}</b><span>profit on the 10 picks · ROI {s["roi"]:+.0f}%</span></div></div>'
             f'<div class="mini">{mini}</div>'
-            f'<div class="mini"><div><span>Game lines</span><b class="sm">{L["won"]}-{L["lost"]}</b><em>{units(L["profit"])}</em></div>'
-            f'<div><span>Football</span><b class="sm">{F["won"]}-{F["lost"]}</b><em>{units(F["profit"])}</em></div>'
-            f'<div><span>Arbitrages</span><span class="st won">+{s["arb_profit"]:,} RSD</span>'
+            f'<div class="mini">'
+            + (f'<div><span>Game lines</span><b class="sm">{L["won"]}-{L["lost"]}</b><em>{units(L["profit"])}</em></div>' if res.get("lines") else "")
+            + (f'<div><span>Football</span><b class="sm">{F["won"]}-{F["lost"]}</b><em>{units(F["profit"])}</em></div>' if res.get("football") else "")
+            + f'<div><span>Arbitrages</span><span class="st won">+{s["arb_profit"]:,} RSD</span>'
             f'<em>{s["arbs"]} of {len(res["arbitrage"])} cashed</em></div></div>'
             f'<div class="list">{rows}</div>'
             f'<div class="alltime"><b>All-time</b> · {t["nights"]} nights · top picks '
             f'{t["won"]}-{t["lost"]} · {units(t["profit"])} (ROI {t["roi"]:+.0f}%) · slips {t["slips_won"]} won · '
             f'arbs +{t["arb_profit"]:,} RSD</div>')
-    return slide("EuroLeague + football · bet results", body, res)
+    return slide(f"{card_label(res)} · bet results", body, res)
 
 
 def rows_html(bets, numbered=True):
@@ -503,21 +504,35 @@ EXTRA_CSS = sb.EXTRA_CSS + """
 """
 
 
+def card_label(res):
+    """'Basketball', 'Football' or 'Basketball + football': from what the night actually had."""
+    fb = bool(res.get("football"))
+    bb = bool(res.get("picks") or res.get("lines") or res.get("slips"))
+    return "Basketball + football" if bb and fb else ("Football" if fb else "Basketball")
+
+
+def has_lines_or_football(res):
+    return bool(res.get("lines") or res.get("football"))
+
+
 def caption(res, s, t, an):
     icon = lambda b: {"won": "✅", "lost": "❌"}.get(b["status"], "➖")
     L, F = s["lines"], s["football"]
-    lines = [f"🏀⚽ Bet results · {date_label(res['date'])}", "",
+    sport_icon = {"Basketball": "🏀", "Football": "⚽"}.get(card_label(res), "🏀⚽")
+    lines = [f"{sport_icon} Bet results · {date_label(res['date'])}", "",
              f"Top 10 picks: {s['won']}-{s['lost']} · {units(s['profit'])} · ROI {s['roi']:+.0f}%", ""]
     lines += [f"{icon(p)} {p['player']} {p['text']} @ {p['odds']:.2f} → {actual(p)}" for p in res["picks"]]
-    lines += ["", f"Game lines: {L['won']}-{L['lost']} ({units(L['profit'])}) · Football: {F['won']}-{F['lost']} "
-                  f"({units(F['profit'])})"]
+    extra = ([f"Game lines: {L['won']}-{L['lost']} ({units(L['profit'])})"] if res.get("lines") else []) +             ([f"Football: {F['won']}-{F['lost']} ({units(F['profit'])})"] if res.get("football") else [])
+    lines += ["", " · ".join(extra)] if extra else [""]
     lines += [f"🎟️ {sl.get("label") or str(sl["n"]) + "-leg slip"} ({sl['total_odds']:,.2f}): {sl['status'].upper()} · {sl['hits']}/{len(sl['legs'])}"
               for sl in res["slips"]]
     lines += [f"💰 Arbitrages: {s['arbs']}/{len(res['arbitrage'])} cashed, +{s['arb_profit']:,} RSD on "
               f"{s['arb_stake']:,.0f} staked"]
     tail = ["", f"All-time: top picks {t['won']}-{t['lost']} · {units(t['profit'])} · arbs +{t['arb_profit']:,} RSD", "",
             "1 unit per pick/slip. Past results don't predict future ones. 18+, bet responsibly.", "",
-            "#EuroLeague #ChampionsLeague #SportsBetting #BettingResults #Basketball"]
+            {"Basketball": "#NBA #EuroLeague #SportsBetting #BettingResults #Basketball",
+             "Football": "#Football #SportsBetting #BettingResults"}.get(card_label(res),
+             "#NBA #EuroLeague #Football #SportsBetting #BettingResults #Basketball")]
     if an:  # full analysis if it fits Instagram's 2,200 chars, else just the titles (details are on the slide)
         full = ["", "🔎 Why it happened:"] + [f"• {p['title']}: {p['text']}" for p in an["points"]]
         short = ["", "🔎 Why it happened (slide 3):"] + [f"• {p['title']}" for p in an["points"]]
@@ -534,7 +549,8 @@ def render(res, out_dir):
     slides = [("01_cover", cover(res, s, t)), ("02_picks", picks_slide(res))]
     if an:
         slides.append(("03_why", analysis_slide(res, an)))
-    slides.append((f"{len(slides) + 1:02d}_lines-football", lines_slide(res, s)))
+    if has_lines_or_football(res):
+        slides.append((f"{len(slides) + 1:02d}_lines-football", lines_slide(res, s)))
     for sl in res["slips"]:
         slides.append((f"{len(slides) + 1:02d}_slip-{sl['n']}", slip_slide(res, sl)))
     slides.append((f"{len(slides) + 1:02d}_arbs", arbs_slide(res, s)))

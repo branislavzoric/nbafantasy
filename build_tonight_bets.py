@@ -176,6 +176,41 @@ def score(b):
     return b["edge_pct"] * min(b["books"], 4) / 4
 
 
+# -----------------------------------------------------------------------------
+# ONE DIRECTION PER MARKET ACROSS THE WHOLE CARD
+# A player's stat (any line) or a game's market type gets one direction on the card: once the picks take
+# "Collier Rebounds Under", no slip or ticket may take "Collier Rebounds Over" (2026-11-10 bet both sides).
+# Arbitrages are the exception: they take both sides on purpose.
+# -----------------------------------------------------------------------------
+def market_side(b):
+    """(market id, direction) of a bet. Props: player + stat, Over/Under (an N+ milestone counts as Over).
+    Game lines / football: game + market type (Winner, Handicap, Total, 1X2, ...), the selection."""
+    k = b["key"]
+    if b["source"] == "EL props":                     # key = (game, player, market, side, line)
+        return ("P", k[0], k[1], k[2]), ("Under" if k[3] == "Under" else "Over")
+    return ("L", b["game_id"], str(k[1]).split()[0]), k[2]   # key = (game, market, sel)
+
+
+def consistent(bets, claimed):
+    """Drop bets that go against a direction already on the card."""
+    out = []
+    for b in bets:
+        mid, side = market_side(b)
+        if claimed.get(mid, side) == side:
+            out.append(b)
+    return out
+
+
+def claim(claimed, chosen):
+    """Record the directions of the chosen bets (a list of bets, or a slip/ticket dict with legs)."""
+    if not chosen:
+        return
+    legs = chosen.get("legs", []) if isinstance(chosen, dict) else chosen
+    for b in legs:
+        mid, side = market_side(b)
+        claimed.setdefault(mid, side)
+
+
 def value_picks(bets, n=10, per=None):
     """per: None (all), one source name, or a tuple of sources."""
     per = (per,) if isinstance(per, str) else per
@@ -281,7 +316,7 @@ def ticket(bets, legs, total_range, used, leg_odds=LEG_ODDS, per_game=2, goal="e
     for book, cands in by_book.items():
         uniq, seen = [], set()
         for c in cands:                                   # one bet per player / per game line market
-            tag = c.get("player") or (c["game_id"], c["bet"])
+            tag = c.get("player") or market_side(c)[0]    # (both sides of a handicap/total are one market)
             if tag not in seen:
                 seen.add(tag); uniq.append(c)
         uniq = uniq[:TOP]
@@ -310,16 +345,20 @@ def ticket(bets, legs, total_range, used, leg_odds=LEG_ODDS, per_game=2, goal="e
     return best
 
 
-def basket_card(bets, arbs):
+def basket_card(bets, arbs, claimed=None):
+    claimed = {} if claimed is None else claimed
     pool = [b for b in bets if b["source"] in BASKET]
-    singles = value_picks(pool, 10, BASKET)
+    singles = value_picks(consistent(pool, claimed), 10, BASKET)
+    claim(claimed, singles)
     tickets, used = [], set()
     for name, label, legs, rng, leg_odds, goal in (
             ("four", "4-leg slip", 4, (1, 10_000), LEG_ODDS, "ev"),
             ("safe", "Safer ticket", range(3, 6), (5, 20), (1.30, 2.20), "safe"),
             ("long", "Long shot", range(4, 8), (20, 100), LEG_ODDS, "ev")):
-        t = ticket(pool, legs, rng, used, leg_odds, goal=goal) or ticket(pool, legs, rng, set(), leg_odds, goal=goal)
+        ok = consistent(pool, claimed)                    # never the other side of a market already on the card
+        t = ticket(ok, legs, rng, used, leg_odds, goal=goal) or ticket(ok, legs, rng, set(), leg_odds, goal=goal)
         if t:
+            claim(claimed, t)
             used |= {l["key"] for l in t["legs"]}
             tickets.append({"name": name, "label": label, "range": list(rng) if name != "four" else None, **t})
     return {"singles": singles, "tickets": tickets,
@@ -372,29 +411,38 @@ def main():
     suspects = sorted([b for b in bets if b["edge_pct"] > 100 * MAX_EDGE and b["books"] >= 3],
                       key=lambda b: -b["edge_pct"])[:10]
 
+    claimed = {}                                          # market -> direction, shared by every part of the card
     picks = value_picks(bets)
-    per_source = {s: value_picks(bets, 5, s) for s in ("EL lines", "NBA lines", "EL props", "Football")}
+    claim(claimed, picks)
+    per_source = {s: value_picks(consistent(bets, claimed), 5, s) for s in ("EL lines", "NBA lines", "EL props", "Football")}
+    for v in per_source.values():
+        claim(claimed, v)
     arbs = arbitrages(el_cons + foot_rows, {**el_games, **fg}, {**link_el, **link_f}, props_arb)
     # per league: both leagues number their games g0, g1, ... so their dicts can't be merged
     basket_arbs = arbitrages(el_cons, el_games, link_el, props_arb, n=12)
     if nba_cons:
         basket_arbs += arbitrages(nba_cons, nba_games, link_nba, props_arb.iloc[0:0], n=12)
     basket_arbs = sorted(basket_arbs, key=lambda a: -a["profit_pct"])[:12]
-    basket = basket_card(bets, basket_arbs)
+    basket = basket_card(bets, basket_arbs, claimed)
 
     slips, used_bets, used_games = {}, set(), set()
     for legs, mn in ((6, args.min6), (5, args.min5), (4, args.min4)):    # longest first: it needs the most games
-        s = best_slip(bets, legs, mn, used_bets, used_games)
+        s = best_slip(consistent(bets, claimed), legs, mn, used_bets, used_games)
         slips[legs] = s
+        claim(claimed, s)
         if s:
             used_bets |= {l["key"] for l in s["legs"]}
             used_games |= {l["player"] for l in s["legs"] if l.get("player")}
 
     # separate cards for the two carousels
-    el_picks = value_picks(bets, 10, ("EL props", "EL lines"))
-    foot_picks = {lg: value_picks([b for b in bets if b["league"] == lg], 5, "Football")
+    el_picks = value_picks(consistent(bets, claimed), 10, ("EL props", "EL lines"))
+    claim(claimed, el_picks)
+    foot_picks = {lg: value_picks(consistent([b for b in bets if b["league"] == lg], claimed), 5, "Football")
                   for lg in ("Champions League", "Championship")}
-    foot_slip = best_slip([b for b in bets if b["source"] == "Football"], 4, 5.0, set(), set(), (1.30, 3.00))
+    for v in foot_picks.values():
+        claim(claimed, v)
+    foot_slip = best_slip(consistent([b for b in bets if b["source"] == "Football"], claimed), 4, 5.0, set(), set(),
+                          (1.30, 3.00))
 
     def clean(b):
         return {k: v for k, v in b.items() if k not in ("key", "others")}

@@ -126,6 +126,20 @@ def best_long_slip(lines, n_legs=10):
     return best
 
 
+def direction(side):
+    return "Under" if side == "Under" else "Over"          # an N+ milestone is an Over
+
+
+def same_direction(lines, chosen):
+    """Drop lines that bet against a player stat already on the card (any line), e.g. no
+    'Rebounds Over' on a slip once the picks have 'Rebounds Under' for that player."""
+    taken = {(c["player"], c["market"]): direction(c["side"]) for c in chosen}
+    if not taken:
+        return lines
+    keep = [taken.get((r.player, r.market), direction(r.side)) == direction(r.side) for r in lines.itertuples()]
+    return lines[keep]
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--min-books", type=int, default=3)
@@ -141,8 +155,9 @@ def main():
     kickoff_of = {r.game: pd.Timestamp(r.kickoff).strftime("%H:%M") for r in cmp.itertuples()}
 
     picks = top_picks(lines[lines.books_in_consensus >= args.min_books], team_of, kickoff_of)
-    short = best_short_slip(lines, 4, args.slip_odds)
-    long_ = best_long_slip(lines, args.long_legs)
+    # one direction per player stat across the card (arbitrages excepted: they take both sides on purpose)
+    short = best_short_slip(same_direction(lines, picks), 4, args.slip_odds)
+    long_ = best_long_slip(same_direction(lines, picks + (short["legs"] if short else [])), args.long_legs)
     arbs = [{"game": r.game, "player": r.player, "team": team_of.get((r.game, r.player), ""), "market": r.market,
              "line": float(r.line), "over_odds": float(r.best_odds_over), "over_book": BOOK_LABELS[r.best_book_over],
              "over_milestone": bool(r.best_is_milestone), "under_odds": float(r.best_odds_under),

@@ -8,6 +8,7 @@
 !/requirements.txt
 !/*.py
 !/*.html
+!/ig_theme.css
 !/depth_overrides.json
 !/projected_wins.json
 !/headlines.json

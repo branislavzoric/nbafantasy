@@ -50,8 +50,11 @@ def file_url(path):
 def font_css():
     with open(os.path.join(FONT_DIR, "fonts.css"), encoding="utf-8") as f:
         css = f.read()
-    return re.sub(r"url\(([^)]+\.woff2)\)",
-                  lambda m: f"url({file_url(os.path.join(FONT_DIR, m.group(1)))})", css)
+    css = re.sub(r"url\(([^)]+\.woff2)\)",
+                 lambda m: f"url({file_url(os.path.join(FONT_DIR, m.group(1)))})", css)
+    # the B3 Basketball Instagram theme rides along with the fonts, so every slide renderer gets it
+    with open(os.path.join(PROJECT_DIR, "ig_theme.css"), encoding="utf-8") as f:
+        return css + "\n" + f.read()
 
 
 def find_browser():

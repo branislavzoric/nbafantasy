@@ -1,0 +1,52 @@
+/* B3 Basketball Instagram theme: direction C, the same design as b3basketball.com (design/tokens.css in the site repo).
+   Midnight navy ground, court orange as the one accent, white "paper" tickets, Anton for titles, Barlow Condensed for
+   names and labels, Inter for running text, DM Mono for odds. render_common.font_css() appends this file to every
+   slide's <style>, so it applies to news posts, timelines, bet and results carousels and football slides alike.
+   It loads BEFORE each template's own CSS, so variables are set on :root:root and rules carry `html body` to win. */
+:root:root {
+  --bg: #0B1F3A; --bg2: #0E2850;
+  --paper: #FFFFFF; --paper-ink: #0B1220; --paper-muted: #535C6B;
+  --pop: #FF5A1F; --arb: #FF5A1F; --edge: #15803D; --hurt: #F43F5E;
+  --won: #34D399; --lost: #F43F5E;
+  --ink: #FFFFFF; --muted: rgba(255, 255, 255, .74); --faint: rgba(255, 255, 255, .14);
+  --font: "Inter", "Segoe UI", system-ui, sans-serif;
+  --display: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --mono: "DM Mono", ui-monospace, Consolas, monospace;
+  --title: "Anton", "Impact", "Arial Narrow", sans-serif;
+}
+
+/* grounds: flat navy, one orange rule along the bottom like the site's section bands */
+html body { background: var(--bg); }
+html body .slide { background: linear-gradient(180deg, var(--bg2), var(--bg) 60%); box-shadow: inset 0 -6px 0 var(--pop); }
+html body .post { background: var(--bg); box-shadow: inset 0 -6px 0 var(--pop); }
+html body .hero .tint { background: linear-gradient(180deg, color-mix(in srgb, var(--bg) 45%, transparent) 0%, transparent 30%, transparent 62%, var(--bg) 100%); }
+html body .post > .text { background: var(--bg); border-top: 4px solid var(--pop); padding-top: 12px; top: 432px; }
+
+/* labels and kickers */
+html body .kick { background: var(--pop); color: #0B1220; border-radius: 3px; font-family: var(--font); }
+html body .date { color: var(--muted); }
+
+/* titles in Anton (single weight: 400) */
+html body h1, html body .head, html body .arbcard .pl { font-family: var(--title); font-weight: 400; letter-spacing: .005em; line-height: .95; }
+html body h1 span { color: var(--pop); }
+html body .post .label { font-family: var(--display); font-weight: 700; font-size: 21px; letter-spacing: .01em; line-height: 1.05; }
+html body .text.nostats .label { font-family: var(--title); font-weight: 400; font-size: 28px; }
+html body .stat b, html body .profit b, html body .tot .v { font-family: var(--title); font-weight: 400; }
+html body .stat b { color: var(--pop); font-size: 64px; }
+html body .stats.one .stat b { font-size: 72px; }
+html body .fig .tag b { color: var(--pop); }
+
+/* paper tickets and slips: clean white cards, ink text, green for the edge */
+html body .ticket, html body .slip, html body .legx, html body .rr { border-radius: 8px; }
+html body .slip .sh { border-bottom-color: #D5D9E0; }
+html body .sl { border-bottom-color: #E4E6EA; }
+html body .sl .bt i, html body .ticket .bet i, html body .legx i, html body .rr .bt i { color: #C2410C; }
+html body .li, html body .facts div, html body .score > div, html body .mini > div { background: rgba(255, 255, 255, .07); }
+
+/* results: won / lost */
+html body .st.won { background: var(--won); color: #052E1C; }
+html body .st.lost { background: var(--lost); color: #2A0510; }
+html body .pnl.up b, html body .facts b.pos { color: var(--won); }
+html body .pnl.down b, html body .facts b.neg { color: var(--lost); }
+html body .rr.won { border-left-color: var(--won); }
+html body .rr.lost { border-left-color: var(--lost); }

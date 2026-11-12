@@ -20,6 +20,7 @@
 !/logos/
 !/docs/
 !/ops/
+!/players_pm/
 
 # never commit secrets or caches
 .env
